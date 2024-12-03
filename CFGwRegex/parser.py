@@ -13,7 +13,8 @@ class CodeLine():
 	
 	def process(self, parser):
 		self.tokenize()
-		self.tree = list(parser.parse(self.tokens))[0]
+		trees = list(parser.parse(self.tokens))
+		self.tree = trees[0]
 		self.insertWildCards(self.tree)
 		self.updateTokens()
 
@@ -47,7 +48,6 @@ class CodeLine():
 				except: continue
 			self.tokens[i] = "num"
 			self.numLiterals.append(numValue)
-		print(self.tokens)
 			
 	def insertWildCards(self, tree):
 		if type(tree) == nltk.tree.tree.Tree:

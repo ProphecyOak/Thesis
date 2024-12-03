@@ -1,6 +1,6 @@
-from builtIns import functions
 import nltk
 import operator
+from builtIns import verbs, prepositions
 
 class Evaluator():
     def __init__(self, prgm):
@@ -18,24 +18,20 @@ class Evaluator():
             self.evaluateLine(line)
 
     def evaluateLine(self, line):
-        self.recurseTree(line.tree)
+        if line.tree[0].label() == "declarative":
+            verbToFill = verbs[line.tree.leaves()[0]]
+            self.findArguments(verbToFill, line.tree[0][0])
         line.draw()
     
-    def recurseTree(self, tree):
-        if type(tree) != nltk.tree.tree.Tree: return tree
-        match tree.label():
-            case "declarative":
-                return functions[tree[0]](self.recurseTree(tree[1]))
-            case "sum":
-                if len(tree) == 1: return self.recurseTree(tree[0])
-                opToUse = operator.__add__ if tree[1] == "plus" else operator.__sub__
-                return opToUse(self.recurseTree(tree[0]), self.recurseTree(tree[2]))
-            case "term":
-                if len(tree) == 1: return self.recurseTree(tree[0])
-                opToUse = operator.__mul__ if tree[1] == "times" else operator.__truediv__
-                return opToUse(self.recurseTree(tree[0]), self.recurseTree(tree[-1]))
-            case _:
-                return self.recurseTree(tree[0])
+    def findArguments(self, verb, tree):
+        if verb.resolved: return
+        if type(tree[0]) != nltk.tree.tree.Tree:
+            print(tree)
+        else:
+            for x in range(3):
+                try: self.findArguments(verb, tree[x])
+                except: break
+
 
 class Scope():
     def __init__(self, parent=None):
