@@ -1,0 +1,10 @@
+prgm -> paragraph
+paragraph -> sentence "NEWLINE" paragraph | sentence
+sentence -> cmplx_sentence | simple_sentence
+cmplx_sentence -> verb_definition
+verb_definition -> leading_sentence "NEWLINE" "INDENT" paragraph "NEWLINE" "DEDENT"
+simple_sentence -> declarative
+declarative -> verb_phrase "."
+verb_phrase -> "VERB" | verb_phrase object | verb_phrase prep_phrase
+object -> "NUM"
+prep_phrase -> ""
