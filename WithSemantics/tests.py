@@ -21,9 +21,9 @@ class Capturing(list):
 class TestScanner(unittest.TestCase):
 	def test_simple_sentence(self):
 		code = "Say two plus three.\n\tIs John's age fourty-five?\nStore 60.45 as Bob."
-		expected = ["say", "two", "plus", "three", ".", "NEWLINE",
-					"INDENT", "Is", "John", "'s", "age", "fourty-five", "?", "NEWLINE",
-					"DEDENT", "store", "60.45", "as", "Bob", ".", "NEWLINE"]
+		expected = ["say", "two", "plus", "three", ".",
+					"INDENT", "Is", "John", "'s", "age", "fourty-five", "?",
+					"DEDENT", "store", "60.45", "as", "Bob", "."]
 		result = Scanner().scan(code.split("\n"))
 		self.assertEqual(result, expected)
 
@@ -41,7 +41,7 @@ class TestParser(unittest.TestCase):
 									Tree("imperative",[
 										Tree("verb_phrase",[
 											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[23])
+											Tree("simpleType",[23])
 										]),
 										"."
 									])
@@ -61,7 +61,7 @@ class TestSemantics(unittest.TestCase):
 									Tree("imperative",[
 										Tree("verb_phrase",[
 											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[23])
+											Tree("simpleType",[23])
 										]),
 										"."
 									])
@@ -73,7 +73,7 @@ class TestSemantics(unittest.TestCase):
 		# print(ast)
 		code = Semantics().resolve(ast)
 		with Capturing() as output:
-			result = code()
+			code()
 		self.assertEqual(output, expected)
 
 if __name__ == '__main__':

@@ -39,6 +39,6 @@ def flattenParagraphs(tree):
 def reinsertTerminals(tree, terminals):
 	if type(tree) != nltk.tree.Tree: return
 	if tree.label() == "verb_terminal" and tree[0] == "VERB" or\
-		tree.label() == "object" and tree[0] == "NUM":
+		tree.label() == "simpleType" and tree[0] == "NUM":
 		tree[0] = terminals.pop(0)
 	for child in tree: reinsertTerminals(child, terminals)

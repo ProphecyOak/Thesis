@@ -1,12 +1,15 @@
+from semanticTypes import *
+
 built_ins = {}
 
 class verb():
-	def __init__(self, _name):
-		self.name = _name
+	def __init__(self, name_, type_, callback_=lambda: None):
+		self.name = name_
 		built_ins[self.name] = self
-		self.frames = {}
+		self.type = type_
+		self.callback = callback_
+	def __str__(self):
+		return f"Verb ({self.name})"
 
-	def addFrame(self, argument, callback):
-		self.frames[argument] = callback
-
-verb("say").addFrame("object", lambda x: print(x))
+verb("identity", semanticType(simpleType(0),simpleType(0)), lambda x: x)
+verb("say", semanticType(simpleType(0),simpleType(-1)), lambda x: print(x))

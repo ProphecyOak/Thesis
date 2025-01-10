@@ -25,7 +25,8 @@ class Scanner():
             # Handle actual words
             for token in re.findall(r"'s|[0-9][,0-9]*(?:\.[0-9]+)?|[\w-]+|[.,!?;'\"]", line):
                 self.tokens.append(token)
+                if self.tokens[-1].lower() == "please": self.tokens.pop(-1)
 
             # Handle Newline at end of each line
-            self.tokens.append("NEWLINE")
+            # self.tokens.append("NEWLINE")
         return self.tokens
