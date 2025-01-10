@@ -10,8 +10,8 @@ class Parser():
 	def parse(self, tokens):
 		custom_terminals = []
 		for i, token in enumerate(tokens):
-			# Extricate Verbs
-			if token in verbs.keys():
+			# Extricate Imperative Verbs
+			if i == 0 and tokens[-1] == "." and token in verbs.keys():
 				custom_terminals.append(token)
 				tokens[i] = "VERB"
 				continue
@@ -38,7 +38,7 @@ def flattenParagraphs(tree):
 
 def reinsertTerminals(tree, terminals):
 	if type(tree) != nltk.tree.Tree: return
-	if tree.label() == "verb_phrase" and tree[0] == "VERB" or\
+	if tree.label() == "verb_terminal" and tree[0] == "VERB" or\
 		tree.label() == "object" and tree[0] == "NUM":
 		tree[0] = terminals.pop(0)
 	for child in tree: reinsertTerminals(child, terminals)
