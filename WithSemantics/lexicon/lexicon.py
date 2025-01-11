@@ -13,3 +13,7 @@ BINOP("plus",
 	semanticType(simpleType(1),semanticType(simpleType(1),simpleType(1))),
 	lambda x: lambda y: x+y
 	)
+BINOP("times",
+	semanticType(simpleType(1),semanticType(simpleType(1),simpleType(1))),
+	lambda x: lambda y: x*y
+	)
