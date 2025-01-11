@@ -41,7 +41,7 @@ class TestParser(unittest.TestCase):
 									Tree("imperative",[
 										Tree("verb_phrase",[
 											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("simpleType",[23])
+											Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
 										]),
 										"."
 									])
@@ -61,7 +61,7 @@ class TestSemantics(unittest.TestCase):
 									Tree("imperative",[
 										Tree("verb_phrase",[
 											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("simpleType",[23])
+											Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
 										]),
 										"."
 									])
@@ -71,6 +71,36 @@ class TestSemantics(unittest.TestCase):
 					)
 		expected = ["23"]
 		# print(ast)
+		code = Semantics().resolve(ast)
+		with Capturing() as output:
+			code()
+		self.assertEqual(output, expected)
+
+	def test_plus_operator(self):
+		ast = Tree("prgm",
+						[Tree("paragraph",
+							[Tree("sentence",[
+								Tree("simple_sentence",[
+									Tree("imperative",[
+										Tree("verb_phrase",[
+											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+											Tree("object",[
+												Tree("expression",[
+													Tree("simpleType",[2]),
+													Tree("expression",[
+														Tree("binop_terminal", ["plus"]),
+														Tree("expression",[Tree("simpleType",[2])])
+													])
+												])
+											])
+										]),
+										"."
+									])
+								])
+							])]
+						)]
+					)
+		expected = ["4"]
 		code = Semantics().resolve(ast)
 		with Capturing() as output:
 			code()

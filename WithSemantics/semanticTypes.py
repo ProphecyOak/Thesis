@@ -1,9 +1,10 @@
 class semanticType():
-	def __init__(self, inType, outType=None):
+	def __init__(self, inType, outType=None, identity=False):
 		if outType == None:
 			self.type = inType
 		else:
 			self.type = (inType.type, outType.type)
+		self.identity = identity
 	
 	def result(self):
 		return semanticType(self.type[1])
@@ -20,8 +21,10 @@ class semanticType():
 		return True
 
 	def __gt__(self, other): # Goes in to
+		if other.identity: return True
 		return semanticType.equals(self.type, other.type[0])
 	def __lt__(self, other): # Takes
+		if self.identity: return True
 		return semanticType.equals(self.type[0], other.type)
 	
 	def strRecurse(bit):
@@ -32,13 +35,18 @@ class semanticType():
 	def __str__(self):
 		return semanticType.strRecurse(self.type)
 
+class identityType(semanticType):
+	def __init__(self):
+		super().__init__(0,identity=True)
+
 class simpleType(semanticType):
 	def __init__(self, valueType):
-		self.type = (valueType,)
+		super().__init__((valueType,))
 
 ####
 # -1 - void
 #  0 - any simple
 #  1 - number
 #  2 - string
-#  3 - object
+#  3 - context
+#  4 - object

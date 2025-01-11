@@ -1,6 +1,6 @@
 import nltk
 from word2number import w2n
-from lexicon.verbs import built_ins as verbs
+from lexicon.lexicon import lexicon
 
 class Parser():
 	def __init__(self, grammar):
@@ -11,7 +11,7 @@ class Parser():
 		custom_terminals = []
 		for i, token in enumerate(tokens):
 			# Extricate Imperative Verbs
-			if i == 0 and tokens[-1] == "." and token in verbs.keys():
+			if i == 0 and tokens[-1] == "." and token in lexicon["VERB"].keys():
 				custom_terminals.append(token)
 				tokens[i] = "VERB"
 				continue
@@ -22,6 +22,12 @@ class Parser():
 				custom_terminals.append(value)
 				tokens[i] = "NUM"
 			except: pass
+
+			# Extricate Binary Operators
+			if tokens[i] in lexicon["BINOP"].keys():
+				custom_terminals.append(token)
+				tokens[i] = "BINOP"
+				continue
 
 		tree = list(self.nltk_parser.parse(tokens))[0]
 		flattenParagraphs(tree)
@@ -39,6 +45,7 @@ def flattenParagraphs(tree):
 def reinsertTerminals(tree, terminals):
 	if type(tree) != nltk.tree.Tree: return
 	if tree.label() == "verb_terminal" and tree[0] == "VERB" or\
-		tree.label() == "simpleType" and tree[0] == "NUM":
+		tree.label() == "simpleType" and tree[0] == "NUM" or\
+		tree.label() == "binop_terminal" and tree[0] == "BINOP":
 		tree[0] = terminals.pop(0)
 	for child in tree: reinsertTerminals(child, terminals)
