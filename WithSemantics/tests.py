@@ -52,6 +52,40 @@ class TestParser(unittest.TestCase):
 		result = testParser.parse(tokens)
 		self.assertEqual(result, expected)
 
+	def test_PEMDAS(self):
+		tokens = ["say", "3", "times", "3", "plus", "4", "."]
+		expected = Tree("prgm",
+						[Tree("paragraph",
+							[Tree("sentence",[
+								Tree("simple_sentence",[
+									Tree("imperative",[
+										Tree("verb_phrase",[
+											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+											Tree("object",[
+												Tree("expression",[
+													Tree("expression",[
+														Tree("simpleType",[3]),
+														Tree("expression",[
+															Tree("binop_terminal", ["times"]),
+															Tree("expression",[Tree("simpleType",[3])])
+														])
+													]),
+													Tree("expression",[
+														Tree("binop_terminal", ["plus"]),
+														Tree("expression",[Tree("simpleType",[4])])
+													])
+												])
+											])
+										]),
+										"."
+									])
+								])
+							])]
+						)]
+					)
+		result = testParser.parse(tokens)
+		self.assertEqual(result, expected)
+
 class TestSemantics(unittest.TestCase):
 	def test_say_statement(self):
 		ast = Tree("prgm",

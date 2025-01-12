@@ -13,19 +13,19 @@ class Semantics():
         Semantics.main = self
 
     def resolve(self, AST):
-        semanticTree = self.convertToTree(AST)
-        semanticTree.getTypes()
-        semanticTree.getValues()
+        semanticTree = self.convert_to_tree(AST)
+        semanticTree.get_types()
+        semanticTree.get_values()
         return semanticTree.value
     
-    def convertToTree(self, AST, parentNode=None):
-        nonTerminal = type(AST) == Tree
-        if nonTerminal:
-            node = semanticNode(AST.label() if nonTerminal else AST, parentNode)
-            for child in AST: self.convertToTree(child, node)
+    def convert_to_tree(self, AST, parentNode=None):
+        non_terminal = type(AST) == Tree
+        if non_terminal:
+            node = semanticNode(AST.label() if non_terminal else AST, parentNode)
+            for child in AST: self.convert_to_tree(child, node)
             return node
         if AST == ".": return
-        parentNode.setValue(AST)
+        parentNode.set_value(AST)
 
 class semanticNode():
     def __init__(self, label, parent_=None):
@@ -39,12 +39,12 @@ class semanticNode():
         self.function = None
         self.argument = None
     
-    def setValue(self, value_):
+    def set_value(self, value_):
         self.value = value_
     
-    def getValues(self):
+    def get_values(self):
         if self.value != None: return self.value
-        for child in self.children: child.getValues()
+        for child in self.children: child.get_values()
         if self.function != None:
             try:
                 self.value = self.function.value(self.argument.value)
@@ -62,18 +62,18 @@ class semanticNode():
             f"Value: {str(self.value)}\nChildren: " + \
             ",".join([f"{child.name}" for child in self.children])+"\n"
     
-    def getTypes(self):
+    def get_types(self):
         if self.type != None: return self.type
         match len(self.children):
             case 0: # Terminal
-                self.getTerminalTypes()
+                self.get_terminal_types()
             case 1: # Non-Branching
-                self.type = self.children[0].getTypes()
+                self.type = self.children[0].get_types()
             case 2: # Branching
-                self.getBranchingTypes()
+                self.get_branching_types()
         return self.type
     
-    def getTerminalTypes(self):
+    def get_terminal_types(self):
         match self.name:
             case "simpleType":
                 match type(self.value): 
@@ -88,9 +88,9 @@ class semanticNode():
                 self.value = word.callback
                 self.type = word.type
     
-    def getBranchingTypes(self):
-        first = self.children[0].getTypes()
-        second = self.children[1].getTypes()
+    def get_branching_types(self):
+        first = self.children[0].get_types()
+        second = self.children[1].get_types()
         if first > second:
             self.function = self.children[1]
             self.argument = self.children[0]
@@ -98,7 +98,7 @@ class semanticNode():
             self.function = self.children[0]
             self.argument = self.children[1]
         else: print(f"Type Mismatch: Cannot compose {str(first)} with {str(second)}")
-        self.type = self.function.getTypes().result()
+        self.type = self.function.get_types().result()
     
     def printTree(self, depth=0):
         print("|  "* depth + f"{self.name}: {str(self.type)}"+(f": {self.value}" if self.value != None else ""))

@@ -20,9 +20,14 @@ class VERB(POS):
 		return f"Verb ({self.name})"
 
 class BINOP(POS):
+	priority = {}
 	def __init__(self, *args):
 		super().__init__(*args)
 		super().builtins["BINOP"][self.name] = self
+
+	def set_priority(self, priority_):
+		self.priority = priority_
+		BINOP.priority[self.name] = self.priority
 
 	def __str__(self):
 		return f"BinOp ({self.name})"

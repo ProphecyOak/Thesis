@@ -1,9 +1,6 @@
 class semanticType():
 	def __init__(self, inType, outType=None, identity=False):
-		if outType == None:
-			self.type = inType
-		else:
-			self.type = (inType.type, outType.type)
+		self.type = inType if outType == None else (inType.type, outType.type)
 		self.identity = identity
 	
 	def result(self):
@@ -27,13 +24,13 @@ class semanticType():
 		if self.identity: return True
 		return semanticType.equals(self.type[0], other.type)
 	
-	def strRecurse(bit):
+	def str_recurse(bit):
 		if type(bit) == int: return ["*","int","str","obj","void"][bit]
-		if len(bit) == 1: return semanticType.strRecurse(bit[0])
-		return f"<{semanticType.strRecurse(bit[0])}, {semanticType.strRecurse(bit[1])}>"
+		if len(bit) == 1: return semanticType.str_recurse(bit[0])
+		return f"<{semanticType.str_recurse(bit[0])}, {semanticType.str_recurse(bit[1])}>"
 	
 	def __str__(self):
-		return semanticType.strRecurse(self.type)
+		return semanticType.str_recurse(self.type)
 
 class identityType(semanticType):
 	def __init__(self):
