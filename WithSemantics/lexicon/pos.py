@@ -2,7 +2,6 @@ from semanticTypes import *
 
 class POS():
 	builtins = {
-		"SPECIAL":{},
 		"VERB":{},
 		"BINOP":{},
 		}

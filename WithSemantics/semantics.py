@@ -2,15 +2,15 @@ from nltk.tree.tree import Tree
 from lexicon.pos import POS
 from semanticTypes import *
 
-lexicon = POS.builtins
-
 class Semantics():
     main = None
+    state = None
     def __init__(self):
         if Semantics.main != None:
             self = Semantics.main
             return
         Semantics.main = self
+        semanticState.setup()
 
     def resolve(self, AST):
         semanticTree = self.convert_to_tree(AST)
@@ -26,6 +26,33 @@ class Semantics():
             return node
         if AST == ".": return
         parentNode.set_value(AST)
+
+class semanticState():
+    current_state = None
+    def __init__(self):
+        self.lookupTable = {}
+        self.parent = semanticState.current_state
+    
+    def setup():
+        semanticState.new_state()
+        semanticState.add(POS.builtins)
+    
+    def add(to_add):
+        for pos in to_add.keys():
+            if pos not in semanticState.current_state.lookupTable.keys(): semanticState.current_state.lookupTable[pos] = {}
+            semanticState.current_state.lookupTable[pos].update(to_add[pos])
+    
+    def lookup(pos, token, state=None):
+        state_to_check = state if state != None else semanticState.current_state
+        if pos in state_to_check.lookupTable.keys() and token in state_to_check.lookupTable[pos].keys(): return state_to_check.lookupTable[pos][token]
+        if state_to_check.parent == None: return None
+        return semanticState.lookup(pos, token, state_to_check.parent)
+    
+    def new_state():
+        semanticState.current_state = semanticState()
+    
+    def exit_state():
+        semanticState.current_state = semanticState.current_state.parent
 
 class semanticNode():
     def __init__(self, label, parent_=None):
@@ -80,11 +107,11 @@ class semanticNode():
                     case int:
                         self.type = simpleType(1)
             case "verb_terminal":
-                word = lexicon["VERB"][self.value]
+                word = semanticState.lookup("VERB", self.value)
                 self.value = word.callback
                 self.type = word.type
             case "binop_terminal":
-                word = lexicon["BINOP"][self.value]
+                word = semanticState.lookup("BINOP", self.value)
                 self.value = word.callback
                 self.type = word.type
     
