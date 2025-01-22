@@ -10,5 +10,5 @@ verb_terminal -> "VERB"
 object -> expression
 expression -> simpleType | binop_terminal expression | simpleType expression
 binop_terminal -> "BINOP"
-simpleType -> "NUM" | "STRING"
+simpleType -> "NUM" | "STRING" | "VAR"
 prep_phrase -> ""

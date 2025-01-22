@@ -13,9 +13,21 @@ class Parser():
 		custom_terminals = []
 		for i, token in enumerate(tokens):
 			# Extricate Imperative Verbs
-			if i == 0 and tokens[-1] == "." and token in lexicon["VERB"].keys():
-				custom_terminals.append(token)
+			if i == 0 and tokens[-1] == "." and token.lower() in lexicon["VERB"].keys():
+				custom_terminals.append(token.lower())
 				tokens[i] = "VERB"
+				continue
+
+			# Extricate Objects (Proper Nouns)
+			if token.lower() != token:
+				custom_terminals.append(token)
+				tokens[i] = "VAR"
+				continue
+
+			# Extricate Binary Operators
+			if tokens[i] in lexicon["BINOP"].keys():
+				custom_terminals.append(token)
+				tokens[i] = "BINOP"
 				continue
 
 			# Extricate Number Literals
@@ -24,12 +36,6 @@ class Parser():
 				custom_terminals.append(value)
 				tokens[i] = "NUM"
 			except: pass
-
-			# Extricate Binary Operators
-			if tokens[i] in lexicon["BINOP"].keys():
-				custom_terminals.append(token)
-				tokens[i] = "BINOP"
-				continue
 
 		tree = list(self.nltk_parser.parse(tokens))[0]
 		flatten_paragraphs(tree)
@@ -85,6 +91,7 @@ def reinsert_terminals(tree, terminals):
 	if type(tree) != Tree: return
 	if tree.label() == "verb_terminal" and tree[0] == "VERB" or\
 		tree.label() == "simpleType" and tree[0] == "NUM" or\
+		tree.label() == "simpleType" and tree[0] == "VAR" or\
 		tree.label() == "binop_terminal" and tree[0] == "BINOP":
 		tree[0] = terminals.pop(0)
 	for child in tree: reinsert_terminals(child, terminals)

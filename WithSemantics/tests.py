@@ -21,17 +21,37 @@ class Capturing(list):
 class TestScanner(unittest.TestCase):
 	def test_simple_sentence(self):
 		code = "Say two plus three.\n\tIs John's age fourty-five?\nStore 60.45 as Bob."
-		expected = ["say", "two", "plus", "three", ".",
+		expected = ["Say", "two", "plus", "three", ".",
 					"INDENT", "Is", "John", "'s", "age", "fourty-five", "?",
-					"DEDENT", "store", "60.45", "as", "Bob", "."]
+					"DEDENT", "Store", "60.45", "as", "Bob", "."]
 		result = Scanner().scan(code.split("\n"))
 		self.assertEqual(result, expected)
 
 
-with open("WithSemantics/natLang.gram") as g:
+with open("natLang.gram") as g:
 	testParser = Parser(g.readlines())
 
 class TestParser(unittest.TestCase):
+	def test_string_literal(self):
+		tokens = ["say", 'Hello World!', "."]
+		expected = Tree("prgm",
+						[Tree("paragraph",
+							[Tree("sentence",[
+								Tree("simple_sentence",[
+									Tree("imperative",[
+										Tree("verb_phrase",[
+											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+											Tree("object",[Tree("expression",[Tree("simpleType",["Hello World!"])])])
+										]),
+										"."
+									])
+								])
+							])]
+						)]
+					)
+		result = testParser.parse(tokens)
+		self.assertEqual(result, expected)
+
 	def test_say_statement(self):
 		tokens = ["say", "23", "."]
 		expected = Tree("prgm",
@@ -86,16 +106,16 @@ class TestParser(unittest.TestCase):
 		result = testParser.parse(tokens)
 		self.assertEqual(result, expected)
 
-class TestSemantics(unittest.TestCase):
-	def test_say_statement(self):
-		ast = Tree("prgm",
+	def test_proper_nouns(self):
+		tokens = ["Say", "John", "."]
+		expected = Tree("prgm",
 						[Tree("paragraph",
 							[Tree("sentence",[
 								Tree("simple_sentence",[
 									Tree("imperative",[
 										Tree("verb_phrase",[
 											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
+											Tree("object",[Tree("expression",[Tree("simpleType",["John"])])])
 										]),
 										"."
 									])
@@ -103,38 +123,134 @@ class TestSemantics(unittest.TestCase):
 							])]
 						)]
 					)
+		result = testParser.parse(tokens)
+		self.assertEqual(result, expected)
+
+class TestSemantics(unittest.TestCase):
+	def test_say_statement(self):
+		ast = Tree("prgm",[
+				Tree("paragraph",
+					[Tree("sentence",[
+						Tree("simple_sentence",[
+							Tree("imperative",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+									Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
+								]),
+								"."
+							])
+						])
+					])]
+				)]
+			)
 		expected = ["23"]
-		# print(ast)
 		code = Semantics().resolve(ast)
 		with Capturing() as output:
 			code()
 		self.assertEqual(output, expected)
 
 	def test_plus_operator(self):
-		ast = Tree("prgm",
-						[Tree("paragraph",
-							[Tree("sentence",[
-								Tree("simple_sentence",[
-									Tree("imperative",[
-										Tree("verb_phrase",[
-											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[
-												Tree("expression",[
-													Tree("simpleType",[2]),
-													Tree("expression",[
-														Tree("binop_terminal", ["plus"]),
-														Tree("expression",[Tree("simpleType",[2])])
-													])
-												])
+		ast = Tree("prgm",[
+				Tree("paragraph",
+					[Tree("sentence",[
+						Tree("simple_sentence",[
+							Tree("imperative",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+									Tree("object",[
+										Tree("expression",[
+											Tree("simpleType",[2]),
+											Tree("expression",[
+												Tree("binop_terminal", ["plus"]),
+												Tree("expression",[Tree("simpleType",[2])])
 											])
-										]),
-										"."
+										])
 									])
-								])
-							])]
-						)]
-					)
+								]),
+								"."
+							])
+						])
+					])]
+				)]
+			)
 		expected = ["4"]
+		code = Semantics().resolve(ast)
+		with Capturing() as output:
+			code()
+		self.assertEqual(output, expected)
+
+	def test_sentences(self):
+		ast = Tree("prgm", [
+				Tree("paragraph", [
+					Tree("sentence",[
+						Tree("simple_sentence",[
+							Tree("imperative",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+									Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
+								]),
+								"."
+							])
+						])
+					]),
+					Tree("sentence",[
+						Tree("simple_sentence",[
+							Tree("imperative",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+									Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
+								]),
+								"."
+							])
+						])
+					]),
+					Tree("sentence",[
+						Tree("simple_sentence",[
+							Tree("imperative",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+									Tree("object",[Tree("expression",[Tree("simpleType",[4])])])
+								]),
+								"."
+							])
+						])
+					])
+				])
+			])
+		expected = ["3","3","4"]
+		code = Semantics().resolve(ast)
+		with Capturing() as output:
+			code()
+		self.assertEqual(output, expected)
+
+	def test_variables(self):
+		ast = Tree("prgm", [
+				Tree("paragraph", [
+					Tree("sentence",[
+						Tree("simple_sentence",[
+							Tree("imperative",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+									Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
+								]),
+								"."
+							])
+						])
+					]),   ### REWRITE THIS TREE AND THE GRAMMAR TO ALLOW STORING AND READING
+					Tree("sentence",[
+						Tree("simple_sentence",[
+							Tree("imperative",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+									Tree("object",[Tree("expression",[Tree("simpleType",[4])])])
+								]),
+								"."
+							])
+						])
+					])
+				])
+			])
+		expected = ["3"]
 		code = Semantics().resolve(ast)
 		with Capturing() as output:
 			code()
