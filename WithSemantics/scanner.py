@@ -24,16 +24,7 @@ class Scanner():
             # Handle actual words
             storingString = False
             stringTokens = []
-            for token in re.findall(r"'s|[0-9][,0-9]*(?:\.[0-9]+)?|[\w-]+|[.,!?;'\"]", line):
-                if token == '"':
-                    if not storingString:
-                        stringTokens = []
-                    else:
-                        self.tokens.append(" ".join(stringTokens))
-                    storingString = not storingString
-                if storingString:
-                    stringTokens.append(token)
-                    continue
+            for token in re.findall(r"\".*\"|'s|[0-9][,0-9]*(?:\.[0-9]+)?|[\w-]+|[.,!?;'\"]", line):
                 self.tokens.append(token)
                 if self.tokens[-1].lower() == "please": self.tokens.pop(-1)
 

@@ -26,6 +26,12 @@ class TestScanner(unittest.TestCase):
 					"DEDENT", "Store", "60.45", "as", "Bob", "."]
 		result = Scanner().scan(code.split("\n"))
 		self.assertEqual(result, expected)
+	
+	def test_string_literal(self):
+		code = "Say \"Hello World!\"."
+		expected = ["Say", '"Hello World!"', "."]
+		result = Scanner().scan(code.split("\n"))
+		self.assertEqual(result, expected)
 
 
 with open("natLang.gram") as g:
@@ -33,7 +39,7 @@ with open("natLang.gram") as g:
 
 class TestParser(unittest.TestCase):
 	def test_string_literal(self):
-		tokens = ["say", 'Hello World!', "."]
+		tokens = ["Say", '"Hello World!"', "."]
 		expected = Tree("prgm",
 						[Tree("paragraph",
 							[Tree("sentence",[

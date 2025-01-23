@@ -17,6 +17,12 @@ class Parser():
 				custom_terminals.append(token.lower())
 				tokens[i] = "VERB"
 				continue
+		
+			# Extricate String Literals
+			if token[0] == '"':
+				custom_terminals.append(token[1:-1])
+				tokens[i] = "STRING"
+				continue
 
 			# Extricate Objects (Proper Nouns)
 			if token.lower() != token:
@@ -92,6 +98,7 @@ def reinsert_terminals(tree, terminals):
 	if tree.label() == "verb_terminal" and tree[0] == "VERB" or\
 		tree.label() == "simpleType" and tree[0] == "NUM" or\
 		tree.label() == "simpleType" and tree[0] == "VAR" or\
+		tree.label() == "simpleType" and tree[0] == "STRING" or\
 		tree.label() == "binop_terminal" and tree[0] == "BINOP":
 		tree[0] = terminals.pop(0)
 	for child in tree: reinsert_terminals(child, terminals)

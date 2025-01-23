@@ -7,7 +7,7 @@ class Compiler():
 	comp = None
 	def __init__(self):
 		self.scanner = Scanner()
-		with open("WithSemantics/natLang.gram") as g:
+		with open("natLang.gram") as g:
 			self.parser = Parser(g.read())
 		self.semantics = Semantics()
 	
@@ -18,8 +18,11 @@ class Compiler():
 	def compile(self, code, debug=False):
 		if debug: print("[Compiling the code...]")
 		start_time = time.time()
+		# print(code)
 		tokens = self.scanner.scan(code)
+		# print(tokens)
 		ast = self.parser.parse(tokens)
+		# print(ast)
 		meaning  = self.semantics.resolve(ast)
 		if debug: print(f"[Done compiling in {round(time.time() - start_time,3)}s]")
 		return meaning
