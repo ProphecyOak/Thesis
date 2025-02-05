@@ -41,114 +41,140 @@ class TestParser(unittest.TestCase):
 	def test_string_literal(self):
 		tokens = ["Say", '"Hello World!"', "."]
 		expected = Tree("prgm",
-						[Tree("paragraph",
-							[Tree("sentence",[
-								Tree("simple_sentence",[
-									Tree("imperative",[
-										Tree("verb_phrase",[
-											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[Tree("expression",[Tree("simpleType",["Hello World!"])])])
-										]),
-										"."
-									])
-								])
-							])]
-						)]
-					)
+			[Tree("paragraph",
+				[Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("expression",[Tree("simpleType",["Hello World!"])])])
+							]),
+							"."
+						])
+					])
+				])]
+			)]
+		)
 		result = testParser.parse(tokens)
 		self.assertEqual(result, expected)
 
 	def test_say_statement(self):
 		tokens = ["say", "23", "."]
 		expected = Tree("prgm",
-						[Tree("paragraph",
-							[Tree("sentence",[
-								Tree("simple_sentence",[
-									Tree("imperative",[
-										Tree("verb_phrase",[
-											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
-										]),
-										"."
-									])
-								])
-							])]
-						)]
-					)
+			[Tree("paragraph",
+				[Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
+							]),
+							"."
+						])
+					])
+				])]
+			)]
+		)
 		result = testParser.parse(tokens)
 		self.assertEqual(result, expected)
 
 	def test_PEMDAS(self):
 		tokens = ["say", "3", "times", "3", "plus", "4", "."]
 		expected = Tree("prgm",
-						[Tree("paragraph",
-							[Tree("sentence",[
-								Tree("simple_sentence",[
-									Tree("imperative",[
-										Tree("verb_phrase",[
-											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[
-												Tree("expression",[
-													Tree("expression",[
-														Tree("simpleType",[3]),
-														Tree("expression",[
-															Tree("binop_terminal", ["times"]),
-															Tree("expression",[Tree("simpleType",[3])])
-														])
-													]),
-													Tree("expression",[
-														Tree("binop_terminal", ["plus"]),
-														Tree("expression",[Tree("simpleType",[4])])
-													])
-												])
+			[Tree("paragraph",
+				[Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[
+									Tree("expression",[
+										Tree("expression",[
+											Tree("simpleType",[3]),
+											Tree("expression",[
+												Tree("binop_terminal", ["times"]),
+												Tree("expression",[Tree("simpleType",[3])])
 											])
 										]),
-										"."
+										Tree("expression",[
+											Tree("binop_terminal", ["plus"]),
+											Tree("expression",[Tree("simpleType",[4])])
+										])
 									])
 								])
-							])]
-						)]
-					)
+							]),
+							"."
+						])
+					])
+				])]
+			)]
+		)
 		result = testParser.parse(tokens)
 		self.assertEqual(result, expected)
 
 	def test_proper_nouns(self):
 		tokens = ["Say", "John", "."]
 		expected = Tree("prgm",
-						[Tree("paragraph",
-							[Tree("sentence",[
-								Tree("simple_sentence",[
-									Tree("imperative",[
-										Tree("verb_phrase",[
-											Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-											Tree("object",[Tree("expression",[Tree("simpleType",["John"])])])
-										]),
-										"."
-									])
+			[Tree("paragraph",
+				[Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("variable",["John"])])
+							]),
+							"."
+						])
+					])
+				])]
+			)]
+		)
+		result = testParser.parse(tokens)
+		self.assertEqual(result, expected)
+
+	def test_assignment_parse(self):
+		tokens = ["Set", "John", "to", "2", "."]
+		expected = Tree("prgm",
+			[Tree("paragraph",
+				[Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[
+									Tree("verb_phrase",[Tree("verb_terminal", ["set"])]),
+									Tree("object",[Tree("variable",["John"])])
+								]),
+								Tree("prep_phrase",[
+									"to",
+									Tree("object",[Tree("expression",[Tree("simpleType",[2])])])
 								])
-							])]
-						)]
-					)
+							]),
+							"."
+						])
+					])
+				])]
+			)]
+		)
 		result = testParser.parse(tokens)
 		self.assertEqual(result, expected)
 
 class TestSemantics(unittest.TestCase):
 	def test_say_statement(self):
 		ast = Tree("prgm",[
-				Tree("paragraph",
-					[Tree("sentence",[
-						Tree("simple_sentence",[
-							Tree("imperative",[
-								Tree("verb_phrase",[
-									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-									Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
-								]),
-								"."
-							])
+			Tree("paragraph",
+				[Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("expression",[Tree("simpleType",[23])])])
+							]),
+							"."
 						])
-					])]
-				)]
-			)
+					])
+				])]
+			)]
+		)
 		expected = ["23"]
 		code = Semantics().resolve(ast)
 		with Capturing() as output:
@@ -157,28 +183,28 @@ class TestSemantics(unittest.TestCase):
 
 	def test_plus_operator(self):
 		ast = Tree("prgm",[
-				Tree("paragraph",
-					[Tree("sentence",[
-						Tree("simple_sentence",[
-							Tree("imperative",[
-								Tree("verb_phrase",[
-									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-									Tree("object",[
+			Tree("paragraph",
+				[Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[
+									Tree("expression",[
+										Tree("simpleType",[2]),
 										Tree("expression",[
-											Tree("simpleType",[2]),
-											Tree("expression",[
-												Tree("binop_terminal", ["plus"]),
-												Tree("expression",[Tree("simpleType",[2])])
-											])
+											Tree("binop_terminal", ["plus"]),
+											Tree("expression",[Tree("simpleType",[2])])
 										])
 									])
-								]),
-								"."
-							])
+								])
+							]),
+							"."
 						])
-					])]
-				)]
-			)
+					])
+				])]
+			)]
+		)
 		expected = ["4"]
 		code = Semantics().resolve(ast)
 		with Capturing() as output:
@@ -187,42 +213,42 @@ class TestSemantics(unittest.TestCase):
 
 	def test_sentences(self):
 		ast = Tree("prgm", [
-				Tree("paragraph", [
-					Tree("sentence",[
-						Tree("simple_sentence",[
-							Tree("imperative",[
-								Tree("verb_phrase",[
-									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-									Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
-								]),
-								"."
-							])
+			Tree("paragraph", [
+				Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
+							]),
+							"."
 						])
-					]),
-					Tree("sentence",[
-						Tree("simple_sentence",[
-							Tree("imperative",[
-								Tree("verb_phrase",[
-									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-									Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
-								]),
-								"."
-							])
+					])
+				]),
+				Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
+							]),
+							"."
 						])
-					]),
-					Tree("sentence",[
-						Tree("simple_sentence",[
-							Tree("imperative",[
-								Tree("verb_phrase",[
-									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-									Tree("object",[Tree("expression",[Tree("simpleType",[4])])])
-								]),
-								"."
-							])
+					])
+				]),
+				Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("expression",[Tree("simpleType",[4])])])
+							]),
+							"."
 						])
 					])
 				])
 			])
+		])
 		expected = ["3","3","4"]
 		code = Semantics().resolve(ast)
 		with Capturing() as output:
@@ -230,32 +256,38 @@ class TestSemantics(unittest.TestCase):
 		self.assertEqual(output, expected)
 
 	def test_variables(self):
-		ast = Tree("prgm", [
-				Tree("paragraph", [
-					Tree("sentence",[
-						Tree("simple_sentence",[
-							Tree("imperative",[
+		ast = Tree("prgm",[
+			Tree("paragraph",[
+				Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
 								Tree("verb_phrase",[
-									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-									Tree("object",[Tree("expression",[Tree("simpleType",[3])])])
+									Tree("verb_phrase",[Tree("verb_terminal", ["set"])]),
+									Tree("object",[Tree("variable",["John"])])
 								]),
-								"."
-							])
+								Tree("prep_phrase",[
+									"to",
+									Tree("object",[Tree("expression",[Tree("simpleType",[2])])])
+								])
+							]),
+							"."
 						])
-					]),   ### REWRITE THIS TREE AND THE GRAMMAR TO ALLOW STORING AND READING
-					Tree("sentence",[
-						Tree("simple_sentence",[
-							Tree("imperative",[
-								Tree("verb_phrase",[
-									Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
-									Tree("object",[Tree("expression",[Tree("simpleType",[4])])])
-								]),
-								"."
-							])
+					])
+				]),
+				Tree("sentence",[
+					Tree("simple_sentence",[
+						Tree("imperative",[
+							Tree("verb_phrase",[
+								Tree("verb_phrase",[Tree("verb_terminal", ["say"])]),
+								Tree("object",[Tree("variable",["John"])])
+							]),
+							"."
 						])
 					])
 				])
-			])
+			])]
+		)
 		expected = ["3"]
 		code = Semantics().resolve(ast)
 		with Capturing() as output:

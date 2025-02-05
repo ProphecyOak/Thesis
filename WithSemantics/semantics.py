@@ -1,5 +1,5 @@
 from nltk.tree.tree import Tree
-from lexicon.pos import POS
+from lexicon.lexicon import semanticState
 from semanticTypes import *
 
 DEBUG = False
@@ -16,7 +16,9 @@ class Semantics():
 
     def resolve(self, AST):
         semanticTree = self.convert_to_tree(AST)
+        semanticTree.printTree()
         semanticTree.get_types()
+        semanticTree.printTree()
         semanticTree.get_values()
         return semanticTree.value
     
@@ -28,41 +30,6 @@ class Semantics():
             return node
         if AST == ".": return
         parentNode.set_value(AST)
-
-class semanticState():
-    current_state = None
-    def __init__(self):
-        self.lookup_table = {}
-        self.parent = semanticState.current_state
-    
-    def setup():
-        semanticState.new_state()
-        semanticState.add(POS.builtins)
-    
-    def add(to_add):
-        for pos in to_add.keys():
-            if pos not in semanticState.current_state.lookup_table.keys(): semanticState.current_state.lookup_table[pos] = {}
-            semanticState.current_state.lookup_table[pos].update(to_add[pos])
-        if DEBUG: semanticState.print_state(to_add)
-    
-    def lookup(pos, token, state=None):
-        state_to_check = state if state != None else semanticState.current_state
-        if pos in state_to_check.lookup_table.keys() and token in state_to_check.lookup_table[pos].keys(): return state_to_check.lookup_table[pos][token]
-        if state_to_check.parent == None: return None
-        return semanticState.lookup(pos, token, state_to_check.parent)
-    
-    def new_state():
-        semanticState.current_state = semanticState()
-    
-    def exit_state():
-        semanticState.current_state = semanticState.current_state.parent
-    
-    def print_state(state_to_print=None):
-        if state_to_print == None: state_to_print = semanticState.current_state.lookup_table
-        for pos, l in state_to_print.items():
-            print(f"{pos}: ")
-            for word, meaning in l.items():
-                print("\t",meaning)
 
 class semanticNode():
     def __init__(self, label, parent_=None):
@@ -124,14 +91,15 @@ class semanticNode():
                         self.type = simpleType(1)
                     case str():
                         self.type = simpleType(2)
+                return
             case "verb_terminal":
                 word = semanticState.lookup("VERB", self.value)
-                self.value = word.callback
-                self.type = word.type
             case "binop_terminal":
                 word = semanticState.lookup("BINOP", self.value)
-                self.value = word.callback
-                self.type = word.type
+            case "variable":
+                word = semanticState.lookup("VARIABLES", self.value)
+        self.value = word.callback
+        self.type = word.type
     
     def get_branching_types(self):
         first = self.children[0].get_types()
@@ -152,7 +120,3 @@ class semanticNode():
     
 def concatenateFunctions(nodes):
     for x in nodes: x.value()
-
-class SemanticObject():
-    def __init__(self):
-        pass

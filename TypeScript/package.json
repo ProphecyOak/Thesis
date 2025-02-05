@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "start": "npm run build --silent && node ./build/index.js"
+  },
+  "dependencies": {
+    "eslint": "^9.19.0",
+    "prettier": "^3.4.2"
+  }
+}

@@ -7,8 +7,9 @@ simple_sentence -> imperative
 imperative -> verb_phrase "."
 verb_phrase -> verb_terminal | verb_phrase object | verb_phrase prep_phrase
 verb_terminal -> "VERB"
-object -> expression
+object -> expression | variable
+variable -> "VAR"
 expression -> simpleType | binop_terminal expression | simpleType expression
 binop_terminal -> "BINOP"
-simpleType -> "NUM" | "STRING" | "VAR"
-prep_phrase -> ""
+simpleType -> "NUM" | "STRING"
+prep_phrase -> "to" object

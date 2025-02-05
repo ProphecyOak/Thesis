@@ -4,6 +4,7 @@ class POS():
 	builtins = {
 		"VERB":{},
 		"BINOP":{},
+		"VARIABLE":{},
 		}
 	def __init__(self, name_, type_, callback_=lambda: None):
 		self.name = name_

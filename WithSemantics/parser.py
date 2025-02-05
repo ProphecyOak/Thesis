@@ -97,7 +97,7 @@ def reinsert_terminals(tree, terminals):
 	if type(tree) != Tree: return
 	if tree.label() == "verb_terminal" and tree[0] == "VERB" or\
 		tree.label() == "simpleType" and tree[0] == "NUM" or\
-		tree.label() == "simpleType" and tree[0] == "VAR" or\
+		tree.label() == "variable" and tree[0] == "VAR" or\
 		tree.label() == "simpleType" and tree[0] == "STRING" or\
 		tree.label() == "binop_terminal" and tree[0] == "BINOP":
 		tree[0] = terminals.pop(0)
