@@ -7,7 +7,7 @@
     "go": "node ./build/index.js",
     "start": "npm run build --silent && node ./build/index.js",
     "test": "npx jest",
-    "clean": "Get-ChildItem ./build | Remove-Item -Recurse -Force"
+    "clean": "rmdir /S /Q build && mkdir build"
   },
   "dependencies": {
     "@types/assert": "^1.5.11",
@@ -17,5 +17,8 @@
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
     "typescript-parsec": "^0.3.4"
+  },
+  "jest": {
+    "testMatch": ["**/tests/**/*.js"]
   }
 }
