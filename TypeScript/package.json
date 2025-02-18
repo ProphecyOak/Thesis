@@ -3,10 +3,10 @@
     "typescript": "^5.7.3"
   },
   "scripts": {
-    "build": "npx tsc",
+    "build": "npm run clean --silent && npx tsc",
     "go": "node ./build/index.js",
     "start": "npm run build --silent && node ./build/index.js",
-    "test": "npx jest",
+    "test": "npm run build --silent && npx jest",
     "clean": "rmdir /S /Q build && mkdir build"
   },
   "dependencies": {

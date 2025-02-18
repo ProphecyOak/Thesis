@@ -1,89 +1,52 @@
-import { Token } from 'typescript-parsec';
-import { buildLexer, expectEOF, expectSingleResult, rule } from 'typescript-parsec';
-import { alt, apply, kmid, lrec_sc, seq, str, tok } from 'typescript-parsec';
+import {
+  alt,
+  apply,
+  kleft,
+  kmid,
+  list_sc,
+  rep_sc,
+  seq,
+  str,
+  Token,
+} from "typescript-parsec";
+import {
+  buildLexer,
+  expectEOF,
+  expectSingleResult,
+  rule,
+} from "typescript-parsec";
 
 export { evaluate };
 
 enum TokenKind {
-    Number,
-    Add,
-    Sub,
-    Mul,
-    Div,
-    LParen,
-    RParen,
-    Space,
+  Any,
 }
 
-const lexer = buildLexer([
-    [true, /^\d+(\.\d+)?/g, TokenKind.Number],
-    [true, /^\+/g, TokenKind.Add],
-    [true, /^\-/g, TokenKind.Sub],
-    [true, /^\*/g, TokenKind.Mul],
-    [true, /^\//g, TokenKind.Div],
-    [true, /^\(/g, TokenKind.LParen],
-    [true, /^\)/g, TokenKind.RParen],
-    [false, /^\s+/g, TokenKind.Space]
-]);
+// DEFINE TOKEN TYPES
+const lexer = buildLexer([[true, /^./g, TokenKind.Any]]);
 
-function applyNumber(value: Token<TokenKind.Number>): number {
-    return +value.text;
+// DEFINE NON_TERMINAL TYPES
+//const NONTERMINAL = rule<TokenKind, ruleOutput>();
+const PRGM = rule<TokenKind, () => void>();
+const PARAGRAPH = rule<TokenKind, () => void>();
+const SENTENCE = rule<TokenKind, () => void>();
+const IMPERATIVE = rule<TokenKind, () => void>();
+const VERB_PHRASE = rule<TokenKind, () => void>();
+
+PRGM.setPattern(PARAGRAPH);
+
+PARAGRAPH.setPattern(apply(list_sc(SENTENCE, str("\n")), concatenateFunctions));
+
+SENTENCE.setPattern(IMPERATIVE);
+
+IMPERATIVE.setPattern(kleft(VERB_PHRASE, str(".")));
+
+function concatenateFunctions(fs: (() => void)[]): () => void {
+  return () => {
+    fs.forEach((element) => element());
+  };
 }
 
-function applyUnary(value: [Token<TokenKind>, number]): number {
-    switch (value[0].text) {
-        case '+': return +value[1];
-        case '-': return -value[1];
-        default: throw new Error(`Unknown unary operator: ${value[0].text}`);
-    }
-}
-
-function applyBinary(first: number, second: [Token<TokenKind>, number]): number {
-    switch (second[0].text) {
-        case '+': return first + second[1];
-        case '-': return first - second[1];
-        case '*': return first * second[1];
-        case '/': return first / second[1];
-        default: throw new Error(`Unknown binary operator: ${second[0].text}`);
-    }
-}
-
-const TERM = rule<TokenKind, number>();
-const FACTOR = rule<TokenKind, number>();
-const EXP = rule<TokenKind, number>();
-
-/*
-TERM
-  = NUMBER
-  = ('+' | '-') TERM
-  = '(' EXP ')'
-*/
-TERM.setPattern(
-    alt(
-        apply(tok(TokenKind.Number), applyNumber),
-        apply(seq(alt(str('+'), str('-')), TERM), applyUnary),
-        kmid(str('('), EXP, str(')'))
-    )
-);
-
-/*
-FACTOR
-  = TERM
-  = FACTOR ('*' | '/') TERM
-*/
-FACTOR.setPattern(
-    lrec_sc(TERM, seq(alt(str('*'), str('/')), TERM), applyBinary)
-);
-
-/*
-EXP
-  = FACTOR
-  = EXP ('+' | '-') FACTOR
-*/
-EXP.setPattern(
-    lrec_sc(FACTOR, seq(alt(str('+'), str('-')), FACTOR), applyBinary)
-);
-
-function evaluate(expr: string): number {
-    return expectSingleResult(expectEOF(EXP.parse(lexer.parse(expr))));
+function evaluate(expr: string): () => void {
+  return expectSingleResult(expectEOF(PRGM.parse(lexer.parse(expr))));
 }
