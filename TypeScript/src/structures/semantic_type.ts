@@ -1,54 +1,63 @@
-export {type semantic_type, Basics}
+export { type Semantic_Type, BasicTypes, compose, Compound_Type };
 
-class semantic_type {
-	takes(other: semantic_type): boolean {return false}
-	is(other: semantic_type): boolean {return false}
-	toString(): string {return `Unimplemented for ${typeof this}`}
+type Semantic_Type = Compound_Type | BasicType;
+
+class Compound_Type {
+  simple: boolean = false;
+  input: Semantic_Type;
+  output: Semantic_Type;
+  constructor(input: Semantic_Type, output: Semantic_Type) {
+    this.input = input;
+    this.output = output;
+  }
+  takes(other: Semantic_Type): boolean {
+    return this.input === other || this.input === BasicTypes.ANY;
+  }
+  is(other: Semantic_Type): boolean {
+    return (
+      other === BasicTypes.ANY ||
+      (other instanceof Compound_Type &&
+        this.input.is(other.input) &&
+        this.output.is(other.output))
+    );
+  }
 }
 
-class compound_type implements semantic_type {
-	input: compound_type;
-	output: compound_type;
-
-	constructor(input: compound_type, output: compound_type) {
-		this.input = input;
-		this.output = output;
-	}
-	takes(other: semantic_type): boolean {
-		return this.input.is(other);
-	}
-	is(other: semantic_type): boolean {
-		if (other instanceof basic_type) return false;
-		return this.input.is((<compound_type>other).input) && this.output.is((<compound_type>other).output);
-	}
-	toString(): string {
-		return `<${this.input},${this.output}>`
-	}
+class BasicType {
+  simple: boolean = true;
+  value: number;
+  constructor(value: number) {
+    this.value = value;
+  }
+  takes(_other: Semantic_Type): boolean {
+    return false;
+  }
+  is(other: Semantic_Type): boolean {
+    return (
+      other instanceof BasicType &&
+      (this === BasicTypes.ANY ||
+        other === BasicTypes.ANY ||
+        this.value == other.value)
+    );
+  }
 }
 
-class basic_type implements semantic_type {
-	typeName: string;
-
-	constructor(name: string) {
-		this.typeName = name;
-	}
-
-	takes(other: semantic_type): boolean {
-		return false;
-	}
-	is(other: semantic_type): boolean {
-		if (other instanceof compound_type) return false;
-		return this == other;
-	}
-	toString(): string {
-		return `${this.typeName}`
-	}
+function compose(first: Semantic_Type, second: Semantic_Type) {
+  return new Compound_Type(first, second);
 }
 
-var Basics = {
-	VOID: new basic_type("void"),
-	ANY: new basic_type("any"),
-	NUM: new basic_type("number"),
-	STRING: new basic_type("string"),
-	BOOLEAN: new basic_type("boolean"),
+enum basicValues {
+  VOID,
+  ANY,
+  NUMBER,
+  STRING,
+  BOOLEAN,
 }
+
+var BasicTypes = {
+  VOID: new BasicType(basicValues.VOID),
+  ANY: new BasicType(basicValues.ANY),
+  NUM: new BasicType(basicValues.NUMBER),
+  STRING: new BasicType(basicValues.STRING),
+  BOOLEAN: new BasicType(basicValues.BOOLEAN),
+};
