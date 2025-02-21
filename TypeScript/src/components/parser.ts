@@ -6,7 +6,6 @@ import {
   kmid,
   list_sc,
   rep_sc,
-  seq,
   str,
   tok,
 } from "typescript-parsec";
@@ -17,7 +16,7 @@ import {
   rule,
 } from "typescript-parsec";
 
-import { semanticFunction } from "./lexicon";
+import { semanticFunction } from "../structures/semantic_function";
 import {
   BasicTypes,
   compose,
@@ -30,6 +29,7 @@ enum TokenKind {
   Numeric,
   Alpha,
   Space,
+  NewLine,
   Other,
 }
 
@@ -37,7 +37,8 @@ enum TokenKind {
 const lexer = buildLexer([
   [true, /^[0-9]*/g, TokenKind.Numeric],
   [true, /^[a-zA-Z]*/g, TokenKind.Alpha],
-  [false, /^\s/g, TokenKind.Space],
+  [false, /^ /g, TokenKind.Space],
+  [true, /^\n/g, TokenKind.NewLine],
   [true, /^./g, TokenKind.Other],
 ]);
 
@@ -71,7 +72,7 @@ const LITERAL = rule<TokenKind, semanticFunction>();
 PRGM.setPattern(apply(PARAGRAPH, debug("prgm")));
 PARAGRAPH.setPattern(
   apply(
-    apply(list_sc(SENTENCE, str("\n")), concatenateFunctions),
+    apply(list_sc(SENTENCE, tok(TokenKind.NewLine)), concatenateFunctions),
     debug("paragraph")
   )
 );

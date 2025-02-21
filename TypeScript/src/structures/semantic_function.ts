@@ -1,8 +1,4 @@
-import {
-  type Semantic_Type,
-  BasicTypes,
-  Compound_Type,
-} from "../structures/semantic_type";
+import { type Semantic_Type, BasicTypes, Compound_Type } from "./semantic_type";
 export { semanticFunction };
 
 class semanticFunction {
