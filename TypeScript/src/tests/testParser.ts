@@ -1,7 +1,38 @@
 import * as assert from "assert";
 import { evaluate } from "../components/parser";
+let results: string[] = new Array();
+let oldConsole = console.log;
+console.log = (x: string) => {
+  results.push(x);
+};
 
-test(`Parser: calculator`, () => {
-  var program = evaluate("Say 23.\nSay 45.");
-  program.meaning();
-});
+function strArr(arr: string[]): string {
+  return results.reduce((x: string, acc: string) => x + "\n" + acc);
+}
+function printResults() {
+  oldConsole(strArr(results));
+}
+
+function testText(
+  name: string,
+  prgm: string,
+  expected: string[],
+  DEBUG = false
+) {
+  test(name, () => {
+    results = [];
+    try {
+      evaluate(prgm)();
+    } catch {
+      results.push("ERROR");
+    }
+    if (DEBUG) printResults();
+    assert.ok(strArr(results) == strArr(expected));
+  });
+}
+
+testText("Parser: Say Number", "Say 23.", ["23"]);
+testText("Parser: Say Number (2x)", "Say 23.\nSay 45.", ["23", "45"]);
+testText("Parser: Say String single quotes", "Say '23'.", ["23"]);
+testText("Parser: Say String double quotes", 'Say "23".', ["23"]);
+testText("Parser: Say String bad quotes", "Say '23\".", ["ERROR"]);

@@ -8,6 +8,7 @@ import {
   rep_sc,
   str,
   tok,
+  Token,
 } from "typescript-parsec";
 import {
   buildLexer,
@@ -16,7 +17,7 @@ import {
   rule,
 } from "typescript-parsec";
 
-import { semanticFunction } from "../structures/semantic_function";
+import { tree_node } from "../structures/tree_node";
 import {
   BasicTypes,
   compose,
@@ -30,6 +31,7 @@ enum TokenKind {
   Alpha,
   Space,
   NewLine,
+  Quote,
   Other,
 }
 
@@ -39,6 +41,7 @@ const lexer = buildLexer([
   [true, /^[a-zA-Z]*/g, TokenKind.Alpha],
   [false, /^ /g, TokenKind.Space],
   [true, /^\n/g, TokenKind.NewLine],
+  [true, /^['"]/g, TokenKind.Quote],
   [true, /^./g, TokenKind.Other],
 ]);
 
@@ -47,10 +50,6 @@ const DEBUG = false;
 function debug(text: string) {
   return (value: any) => {
     if (DEBUG) {
-      console.log(
-        text,
-        typeof value === "object" ? value.constructor.name : typeof value
-      );
       console.log(value);
     }
     return value;
@@ -59,20 +58,31 @@ function debug(text: string) {
 
 // DEFINE NON_TERMINAL TYPES
 //const NONTERMINAL = rule<TokenKind, ruleOutput>();
-const PRGM = rule<TokenKind, semanticFunction>();
-const PARAGRAPH = rule<TokenKind, semanticFunction>();
-const SENTENCE = rule<TokenKind, semanticFunction>();
-const IMPERATIVE = rule<TokenKind, semanticFunction>();
-const VERB_PHRASE = rule<TokenKind, semanticFunction>();
-const VERB = rule<TokenKind, semanticFunction>();
-const ARGUMENT = rule<TokenKind, semanticFunction>();
-const LITERAL = rule<TokenKind, semanticFunction>();
+const PRGM = rule<TokenKind, tree_node>();
+const PARAGRAPH = rule<TokenKind, tree_node>();
+const SENTENCE = rule<TokenKind, tree_node>();
+const IMPERATIVE = rule<TokenKind, tree_node>();
+const VERB_PHRASE = rule<TokenKind, tree_node>();
+const VERB = rule<TokenKind, tree_node>();
+const ARGUMENT = rule<TokenKind, tree_node>();
+const LITERAL = rule<TokenKind, tree_node>();
 
 // OVERHEAD FOR BLOCKING AND LINES
 PRGM.setPattern(apply(PARAGRAPH, debug("prgm")));
 PARAGRAPH.setPattern(
   apply(
-    apply(list_sc(SENTENCE, tok(TokenKind.NewLine)), concatenateFunctions),
+    apply(
+      list_sc(SENTENCE, tok(TokenKind.NewLine)),
+      (sentences: tree_node[]) => {
+        let para = new tree_node(
+          "Paragraph",
+          compose(BasicTypes.VOID, BasicTypes.VOID),
+          () => sentences.forEach((sentence) => sentence.value())
+        );
+        sentences.forEach((sentence: tree_node) => sentence.set_parent(para));
+        return para;
+      }
+    ),
     debug("paragraph")
   )
 );
@@ -82,10 +92,17 @@ IMPERATIVE.setPattern(apply(kleft(VERB_PHRASE, str(".")), debug("imperative")));
 // ACTUAL SENTENCE PARSING
 VERB_PHRASE.setPattern(
   apply(
-    combine(VERB, (verb: semanticFunction) => {
-      return apply(ARGUMENT, (arg: semanticFunction) =>
-        composeFunctions(verb, arg)
-      );
+    combine(VERB, (verb: tree_node) => {
+      return apply(ARGUMENT, (arg: tree_node) => {
+        let verb_phrase = new tree_node(
+          "Verb Phrase",
+          (verb.value_type as Compound_Type).output,
+          verb.value(arg)
+        );
+        verb.set_parent(verb_phrase);
+        arg.set_parent(verb_phrase);
+        return verb_phrase;
+      });
     }),
     debug("verb_phrase")
   )
@@ -95,11 +112,10 @@ VERB.setPattern(
   apply(
     apply(tok(TokenKind.Alpha), (verb: any) => {
       // GRAB ACTUAL VERB DEFINITION AND SUB IN HERE NORMALLY
-      return new semanticFunction(
-        (argument: any) => {
-          console.log(argument.meaning);
-        },
-        compose(BasicTypes.ANY, compose(BasicTypes.VOID, BasicTypes.VOID))
+      return new tree_node(
+        "Verb",
+        compose(BasicTypes.ANY, compose(BasicTypes.VOID, BasicTypes.VOID)),
+        (argument: tree_node) => () => console.log(argument.value)
       );
     }),
     debug("verb")
@@ -110,43 +126,35 @@ ARGUMENT.setPattern(apply(LITERAL, debug("argument")));
 
 LITERAL.setPattern(
   apply(
-    apply(
-      alt(
-        tok(TokenKind.Numeric),
-        kmid(
-          str('"'),
-          rep_sc(alt(tok(TokenKind.Alpha), tok(TokenKind.Numeric))),
-          str('"')
-        )
+    alt(
+      apply(tok(TokenKind.Numeric), (value: Token<TokenKind.Numeric>) =>
+        tree_node.literal(Number(value.text))
       ),
-      (value: any) => {
-        return semanticFunction.literal(value.text);
-      }
+      apply(
+        combine(tok(TokenKind.Quote), (quote: Token<TokenKind.Quote>) => {
+          return kleft(
+            rep_sc(alt(tok(TokenKind.Alpha), tok(TokenKind.Numeric))),
+            str(quote.text)
+          );
+        }),
+        (stringLit: (Token<TokenKind.Alpha> | Token<TokenKind.Numeric>)[]) =>
+          tree_node.literal(
+            stringLit.reduce(
+              (
+                acc: string,
+                e: Token<TokenKind.Alpha> | Token<TokenKind.Numeric>
+              ) => {
+                return acc + e.text;
+              },
+              ""
+            )
+          )
+      )
     ),
     debug("literal")
   )
 );
 
-function concatenateFunctions(fs: semanticFunction[]): semanticFunction {
-  return new semanticFunction(
-    () => {
-      fs.forEach((element) => element.meaning());
-    },
-    compose(BasicTypes.VOID, BasicTypes.VOID)
-  );
-}
-
-function composeFunctions(
-  f: semanticFunction,
-  argument: semanticFunction
-): semanticFunction {
-  if (f.semantic_type.simple || !f.takes(argument)) throw new TypeError();
-  return new semanticFunction(
-    () => f.meaning(argument),
-    (f.semantic_type as Compound_Type).output
-  );
-}
-
-function evaluate(expr: string): semanticFunction {
-  return expectSingleResult(expectEOF(PRGM.parse(lexer.parse(expr))));
+function evaluate(expr: string): (x: void) => void {
+  return expectSingleResult(expectEOF(PRGM.parse(lexer.parse(expr)))).value;
 }
