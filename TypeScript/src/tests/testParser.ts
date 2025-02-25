@@ -31,8 +31,17 @@ function testText(
   });
 }
 
-testText("Parser: Say Number", "Say 23.", ["23"]);
-testText("Parser: Say Number (2x)", "Say 23.\nSay 45.", ["23", "45"]);
-testText("Parser: Say String single quotes", "Say '23'.", ["23"]);
-testText("Parser: Say String double quotes", 'Say "23".', ["23"]);
-testText("Parser: Say String bad quotes", "Say '23\".", ["ERROR"]);
+describe("Recognization of numeral-based numbers", () => {
+  testText("Parser: Say Number", "Say 23.", ["23"]);
+  testText("Parser: Say Number (2x)", "Say 23.\nSay 45.", ["23", "45"]);
+});
+
+describe("Recognization of strings", () => {
+  testText("Parser: Say String single quotes", "Say '23'.", ["23"]);
+  testText("Parser: Say String double quotes", 'Say "23".', ["23"]);
+  testText("Parser: Say String bad quotes", "Say '23\".", ["ERROR"]);
+  testText("Parser: Say String nested quote", "Say '2\"3'.\nSay \"2'3\"", [
+    '2"3',
+    "2'3",
+  ]);
+});

@@ -1,5 +1,6 @@
 import { BasicTypes, Semantic_Type } from "./semantic_type";
 import { semantic_state } from "./semantic_state";
+import { parts_of_speech } from "./parts_of_speech";
 
 export { tree_node };
 
@@ -34,6 +35,15 @@ class tree_node {
     new_node.set_parent(this);
     this.children.push(new_node);
     return new_node;
+  }
+
+  assignStates(): void {
+    this.children.forEach((child: tree_node) => {
+      if (child.node_label == "paragraph") {
+        child.state = this.state.child_state();
+      }
+      child.assignStates();
+    });
   }
 
   static literal(value: number | string) {

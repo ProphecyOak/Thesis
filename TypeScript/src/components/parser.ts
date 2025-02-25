@@ -23,6 +23,8 @@ import {
   compose,
   Compound_Type,
 } from "../structures/semantic_type";
+import { semantic_state } from "../structures/semantic_state";
+import { loadLexicon } from "./lexicon";
 
 export { evaluate };
 
@@ -66,9 +68,21 @@ const VERB_PHRASE = rule<TokenKind, tree_node>();
 const VERB = rule<TokenKind, tree_node>();
 const ARGUMENT = rule<TokenKind, tree_node>();
 const LITERAL = rule<TokenKind, tree_node>();
+const STRING_CHARACTER = rule<TokenKind, Token<TokenKind>>();
+
+const parent_state = new semantic_state(null);
+loadLexicon(parent_state);
 
 // OVERHEAD FOR BLOCKING AND LINES
-PRGM.setPattern(apply(PARAGRAPH, debug("prgm")));
+PRGM.setPattern(
+  apply(
+    apply(PARAGRAPH, (value: tree_node) => {
+      value.state = parent_state;
+      value.assignStates();
+    }),
+    debug("prgm")
+  )
+);
 PARAGRAPH.setPattern(
   apply(
     apply(
@@ -133,11 +147,11 @@ LITERAL.setPattern(
       apply(
         combine(tok(TokenKind.Quote), (quote: Token<TokenKind.Quote>) => {
           return kleft(
-            rep_sc(alt(tok(TokenKind.Alpha), tok(TokenKind.Numeric))),
+            rep_sc(alt(STRING_CHARACTER, str(quote.text == "'" ? '"' : "'"))),
             str(quote.text)
           );
         }),
-        (stringLit: (Token<TokenKind.Alpha> | Token<TokenKind.Numeric>)[]) =>
+        (stringLit: Token<any>[]) =>
           tree_node.literal(
             stringLit.reduce(
               (
@@ -154,6 +168,8 @@ LITERAL.setPattern(
     debug("literal")
   )
 );
+
+STRING_CHARACTER.setPattern(alt(tok(TokenKind.Alpha), tok(TokenKind.Numeric)));
 
 function evaluate(expr: string): (x: void) => void {
   return expectSingleResult(expectEOF(PRGM.parse(lexer.parse(expr)))).value;
