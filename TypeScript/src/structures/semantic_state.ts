@@ -8,7 +8,7 @@ type lookupRecord = Map<string, Map<string, tree_node>>;
 class semantic_state {
   parent_state: semantic_state | null;
   lookup_table: lookupRecord;
-  parts_of_speech: string[];
+  parts_of_speech: { [key: string]: string };
 
   constructor(parent_state: semantic_state | null) {
     this.parent_state = parent_state;
@@ -33,7 +33,7 @@ class semantic_state {
 
   createEmptyLookup(): lookupRecord {
     const table: lookupRecord = new Map<string, Map<string, tree_node>>();
-    for (const pos in this.parts_of_speech)
+    for (const pos in Object.values(this.parts_of_speech))
       table.set(pos, new Map<string, tree_node>());
     return table;
   }

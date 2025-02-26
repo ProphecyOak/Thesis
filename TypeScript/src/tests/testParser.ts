@@ -32,16 +32,21 @@ function testText(
 }
 
 describe("Recognization of numeral-based numbers", () => {
-  testText("Parser: Say Number", "Say 23.", ["23"]);
-  testText("Parser: Say Number (2x)", "Say 23.\nSay 45.", ["23", "45"]);
+  testText("Say Number", "Say 23.", ["23"]);
+  testText("Say Number (2x)", "Say 23.\nSay 45.", ["23", "45"]);
 });
 
 describe("Recognization of strings", () => {
-  testText("Parser: Say String single quotes", "Say '23'.", ["23"]);
-  testText("Parser: Say String double quotes", 'Say "23".', ["23"]);
-  testText("Parser: Say String bad quotes", "Say '23\".", ["ERROR"]);
-  testText("Parser: Say String nested quote", "Say '2\"3'.\nSay \"2'3\"", [
+  testText("Say String single quotes", "Say '23'.", ["23"]);
+  testText("Say String double quotes", 'Say "23".', ["23"]);
+  testText("Say String bad quotes", "Say '23\".", ["ERROR"]);
+  testText("Say String nested quote", "Say '2\"3'.\nSay \"2'3\"", [
     '2"3',
     "2'3",
   ]);
+});
+
+describe("Recognization of verbs", () => {
+  testText("Recognize Say", "Say '23'.", ["23"]);
+  testText("Don't Recognize Blgfgshodf", "Blgfgshodf 23", ["ERROR"]);
 });

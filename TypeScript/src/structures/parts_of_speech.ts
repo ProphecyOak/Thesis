@@ -1,2 +1,4 @@
 export { parts_of_speech };
-const parts_of_speech = ["Verb"];
+const parts_of_speech = {
+  Verb: "Verb",
+};

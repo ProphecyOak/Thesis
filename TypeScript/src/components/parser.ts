@@ -25,6 +25,7 @@ import {
 } from "../structures/semantic_type";
 import { semantic_state } from "../structures/semantic_state";
 import { loadLexicon } from "./lexicon";
+import { parts_of_speech } from "../structures/parts_of_speech";
 
 export { evaluate };
 
@@ -76,9 +77,9 @@ loadLexicon(parent_state);
 // OVERHEAD FOR BLOCKING AND LINES
 PRGM.setPattern(
   apply(
-    apply(PARAGRAPH, (value: tree_node) => {
-      value.state = parent_state;
-      value.assignStates();
+    apply(PARAGRAPH, (para: tree_node) => {
+      para.state = parent_state;
+      para.assignStates();
     }),
     debug("prgm")
   )
@@ -91,7 +92,7 @@ PARAGRAPH.setPattern(
         let para = new tree_node(
           "Paragraph",
           compose(BasicTypes.VOID, BasicTypes.VOID),
-          () => sentences.forEach((sentence) => sentence.value())
+          () => sentences.forEach((sentence) => sentence.get_value()())
         );
         sentences.forEach((sentence: tree_node) => sentence.set_parent(para));
         return para;
@@ -111,7 +112,7 @@ VERB_PHRASE.setPattern(
         let verb_phrase = new tree_node(
           "Verb Phrase",
           (verb.value_type as Compound_Type).output,
-          verb.value(arg)
+          verb.get_value()(arg)
         );
         verb.set_parent(verb_phrase);
         arg.set_parent(verb_phrase);
@@ -125,11 +126,9 @@ VERB_PHRASE.setPattern(
 VERB.setPattern(
   apply(
     apply(tok(TokenKind.Alpha), (verb: any) => {
-      // GRAB ACTUAL VERB DEFINITION AND SUB IN HERE NORMALLY
-      return new tree_node(
-        "Verb",
-        compose(BasicTypes.ANY, compose(BasicTypes.VOID, BasicTypes.VOID)),
-        (argument: tree_node) => () => console.log(argument.value)
+      return tree_node.terminalWord(
+        parts_of_speech.Verb,
+        verb.text.toLowerCase()
       );
     }),
     debug("verb")
@@ -172,5 +171,7 @@ LITERAL.setPattern(
 STRING_CHARACTER.setPattern(alt(tok(TokenKind.Alpha), tok(TokenKind.Numeric)));
 
 function evaluate(expr: string): (x: void) => void {
-  return expectSingleResult(expectEOF(PRGM.parse(lexer.parse(expr)))).value;
+  return expectSingleResult(
+    expectEOF(PRGM.parse(lexer.parse(expr)))
+  ).get_value();
 }
