@@ -1,5 +1,5 @@
 import { Word } from "../components/lexicon";
-import { partsOfSpeech } from "./parts_of_speech";
+import { partsOfSpeech } from "./pieces";
 import { TreeNode } from "./tree_node";
 
 export { SemanticState };

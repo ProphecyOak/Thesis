@@ -54,9 +54,19 @@ describe("Basics", () => {
     [45.23],
     false,
     false,
-    (node: TreeNode) => {
-      node.assignState(new SemanticState());
+    (node: TreeNode<any>) => {
       console.log(node.getValue());
     }
+  );
+});
+
+describe("Say", () => {
+  testText(
+    "Saying a literal",
+    "Say 45.23.",
+    nodeTypes.SENTENCE,
+    [45.23],
+    false,
+    false
   );
 });

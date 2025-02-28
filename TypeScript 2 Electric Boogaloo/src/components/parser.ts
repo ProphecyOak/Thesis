@@ -6,7 +6,6 @@ import {
   kright,
   opt,
   Parser,
-  ParserOutput,
   rep_sc,
   Rule,
   seq,
@@ -14,27 +13,15 @@ import {
   tok,
   Token,
 } from "typescript-parsec";
-import {
-  buildLexer,
-  expectEOF,
-  expectSingleResult,
-  rule,
-} from "typescript-parsec";
+import { buildLexer, expectEOF, expectSingleResult } from "typescript-parsec";
 import { TreeNode } from "../structures/tree_node";
 import { SemanticState } from "../structures/semantic_state";
+import { builtins, Word } from "./lexicon";
+import { NodeLabel, nodeTypes, TokenKind } from "../structures/pieces";
 
 export { evaluate, nodeTypes };
 
-enum TokenKind {
-  Numeric,
-  Alpha,
-  Space,
-  NewLine,
-  Quote,
-  Other,
-}
-
-// DEFINE TOKEN TYPES
+// SET TOKEN RECOGNIZERS
 const lexer = buildLexer([
   [true, /^[0-9]*/g, TokenKind.Numeric],
   [true, /^[a-zA-Z]*/g, TokenKind.Alpha],
@@ -43,6 +30,9 @@ const lexer = buildLexer([
   [true, /^['"]/g, TokenKind.Quote],
   [true, /^./g, TokenKind.Other],
 ]);
+
+const everestScope = new SemanticState();
+builtins.forEach((word: Word<any>) => everestScope.addWord(word));
 
 let DEBUG: boolean = false;
 
@@ -59,24 +49,21 @@ function pattern<T>(
   );
 }
 
-// DEFINE NON_TERMINAL TYPES
-//const NONTERMINAL = rule<TokenKind, ruleOutput>();
-const nodeTypes = {
-  PRGM: rule<TokenKind, any>(),
-  LITERAL: rule<TokenKind, TreeNode>(),
-  NUMERIC_LITERAL: rule<TokenKind, number>(),
-  STRING_LITERAL: rule<TokenKind, string>(),
-  STRING_CHARACTER: rule<TokenKind, Token<TokenKind>>(),
-};
+pattern(
+  nodeTypes.SENTENCE,
+  combine(nodeTypes.VERB, (verb: TreeNode<any>) => {
+    return verb.getArguments();
+  })
+);
 
 pattern(
   nodeTypes.LITERAL,
   apply(
     alt(nodeTypes.NUMERIC_LITERAL, nodeTypes.STRING_LITERAL),
     (value: string | number) =>
-      new TreeNode("Literal", (state: SemanticState) => value)
+      new TreeNode(NodeLabel.Literal, (state: SemanticState) => value)
   ),
-  (node: TreeNode) => node.getValue().toString()
+  (node: TreeNode<any>) => node.getValue().toString()
 );
 
 pattern(
@@ -133,7 +120,13 @@ pattern(
 
 function evaluate<T>(nodeType: Rule<any, T>, expr: string, debug?: boolean): T {
   DEBUG = debug == undefined ? false : debug;
-  return expectSingleResult(expectEOF(nodeType.parse(lexer.parse(expr))));
+  const parseResult = expectSingleResult(
+    expectEOF(nodeType.parse(lexer.parse(expr)))
+  );
+  if (parseResult instanceof TreeNode) {
+    parseResult.assignState(everestScope);
+  }
+  return parseResult;
 }
 
 function mapTokenArrayToString(tokenArray: Token<any>[]): string {
