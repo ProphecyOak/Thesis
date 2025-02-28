@@ -5,19 +5,32 @@ import { tree_node } from "../structures/tree_node";
 
 export { verbs, loadLexicon };
 
-const verbs = new Map<string, tree_node>([
+const verbs = new Map<string, (state: semantic_state) => tree_node>([
   [
     "say",
-    new tree_node(
-      parts_of_speech.Verb,
-      compose(BasicTypes.ANY, compose(BasicTypes.VOID, BasicTypes.VOID)),
-      (argument: tree_node) => () => console.log(argument.value)
-    ),
+    (state: semantic_state) =>
+      new tree_node(
+        parts_of_speech.Verb,
+        compose(BasicTypes.ANY, compose(BasicTypes.VOID, BasicTypes.VOID)),
+        (argument: tree_node) => () => console.log(argument.value)
+      ),
+  ],
+  [
+    "set",
+    (state: semantic_state) =>
+      new tree_node(
+        parts_of_speech.Verb,
+        compose(BasicTypes.ANY, compose(BasicTypes.VOID, BasicTypes.VOID)),
+        (variable_name: tree_node) => (value: tree_node) => () => {
+          state.add("variable", variable_name.get_value(), value.get_value());
+          console.log(value.get_value());
+        }
+      ),
   ],
 ]);
 
 function loadLexicon(state: semantic_state): void {
-  verbs.forEach((value: tree_node, key: string) => {
+  verbs.forEach((value: (state: semantic_state) => tree_node, key: string) => {
     state.add(parts_of_speech.Verb, key, value);
   });
 }

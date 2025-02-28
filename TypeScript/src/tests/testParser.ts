@@ -1,5 +1,6 @@
 import * as assert from "assert";
 import { evaluate } from "../components/parser";
+
 let results: string[] = new Array();
 let oldConsole = console.log;
 console.log = (x: string) => {
@@ -7,10 +8,10 @@ console.log = (x: string) => {
 };
 
 function strArr(arr: string[]): string {
-  return results.reduce((x: string, acc: string) => x + "\n" + acc);
+  return arr.reduce((x: string, acc: string) => x + "\n" + acc);
 }
-function printResults() {
-  oldConsole(strArr(results));
+function printArr(arr: string[]) {
+  oldConsole(strArr(arr));
 }
 
 function testText(
@@ -23,16 +24,21 @@ function testText(
     results = [];
     try {
       evaluate(prgm)();
-    } catch {
+    } catch (error: any) {
+      if (DEBUG) oldConsole(error);
       results.push("ERROR");
     }
-    if (DEBUG) printResults();
-    assert.ok(strArr(results) == strArr(expected));
+    if (DEBUG) {
+      printArr([name]);
+      printArr(results);
+      printArr(expected);
+    }
+    expect(results).toEqual(expected);
   });
 }
 
 describe("Recognization of numeral-based numbers", () => {
-  testText("Say Number", "Say 23.", ["23"]);
+  testText("Say Number", "Say 23.", ["23"], true);
   testText("Say Number (2x)", "Say 23.\nSay 45.", ["23", "45"]);
 });
 
@@ -49,4 +55,8 @@ describe("Recognization of strings", () => {
 describe("Recognization of verbs", () => {
   testText("Recognize Say", "Say '23'.", ["23"]);
   testText("Don't Recognize Blgfgshodf", "Blgfgshodf 23", ["ERROR"]);
+});
+
+describe("Storing and Accessing variables", () => {
+  testText("Basic set", "Set X to 2.", ["2"]);
 });

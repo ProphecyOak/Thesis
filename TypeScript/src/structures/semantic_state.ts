@@ -3,7 +3,10 @@ import { tree_node } from "./tree_node";
 
 export { semantic_state };
 
-type lookupRecord = Map<string, Map<string, tree_node>>;
+type lookupRecord = Map<
+  string,
+  Map<string, (state: semantic_state) => tree_node>
+>;
 
 class semantic_state {
   parent_state: semantic_state | null;
@@ -16,7 +19,11 @@ class semantic_state {
     this.lookup_table = this.createEmptyLookup();
   }
 
-  add(pos: string, name: string, new_word: tree_node) {
+  add(
+    pos: string,
+    name: string,
+    new_word: (state: semantic_state) => tree_node
+  ) {
     this.lookup_table.get(pos)?.set(name, new_word);
   }
   lookup(pos: string, name: string): tree_node {
@@ -25,16 +32,19 @@ class semantic_state {
       if (this.parent_state != null) return this.parent_state.lookup(pos, name);
       else throw new Error(`${name} missing from lexicon.`);
     }
-    return word;
+    return word(this);
   }
   child_state(): semantic_state {
     return new semantic_state(this);
   }
 
   createEmptyLookup(): lookupRecord {
-    const table: lookupRecord = new Map<string, Map<string, tree_node>>();
+    const table: lookupRecord = new Map<
+      string,
+      Map<string, (state: semantic_state) => tree_node>
+    >();
     for (const pos in Object.values(this.parts_of_speech))
-      table.set(pos, new Map<string, tree_node>());
+      table.set(pos, new Map<string, (state: semantic_state) => tree_node>());
     return table;
   }
 }
