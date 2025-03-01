@@ -1,9 +1,6 @@
 import * as assert from "assert";
-import { evaluate, nodeTypes } from "../components/parser";
 import { Rule } from "typescript-parsec";
-import { TreeNode } from "../structures/tree_node";
-import { SemanticState } from "../structures/semantic_state";
-
+import { MeaningInterface, parserRules, TreeNodeInterface } from "../header";
 let results: (string | number)[] = new Array();
 let oldConsole = console.log;
 console.log = (x: string) => {
@@ -21,9 +18,9 @@ function testText<T>(
 ) {
   test(name, () => {
     results = [];
-    const returnedPrgm = evaluate<T>(nodeType, prgm, DEBUG);
-    if (returnedPrgm instanceof TreeNode && runnable)
-      (returnedPrgm.getValue() as () => any)();
+    const returnedPrgm: T = null as T; // EVALUATE FUNCTION GOES HERE
+    if (runnable)
+      null; // RUN THE RESULT
     else if (testFx != undefined) testFx(returnedPrgm);
     expect(results).toEqual(expected);
   });
@@ -33,7 +30,7 @@ describe("Basics", () => {
   testText(
     "String",
     "'Hello World'",
-    nodeTypes.STRING_LITERAL,
+    parserRules.STRING_LITERAL,
     ["Hello World"],
     false,
     false,
@@ -42,7 +39,7 @@ describe("Basics", () => {
   testText(
     "Number",
     "45.23",
-    nodeTypes.NUMERIC_LITERAL,
+    parserRules.NUMERIC_LITERAL,
     [45.23],
     false,
     false,
@@ -51,12 +48,12 @@ describe("Basics", () => {
   testText(
     "Literal",
     "45.23",
-    nodeTypes.LITERAL,
+    parserRules.LITERAL,
     [45.23],
     false,
     false,
-    (node: TreeNode<any>) => {
-      console.log(node.getValue());
+    (node: MeaningInterface<any>) => {
+      console.log(node.getMeaning());
     }
   );
 });
@@ -65,7 +62,7 @@ describe("Say", () => {
   testText(
     "Saying a literal",
     "Say 45.23.",
-    nodeTypes.SENTENCE,
+    parserRules.SENTENCE,
     [45.23],
     true,
     false
