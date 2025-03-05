@@ -1,31 +1,31 @@
 import { rep_sc } from "typescript-parsec";
-import { testPrint, testText } from "../components/tester";
+import { multiTest, testPrint, testText } from "../components/tester";
 import { parserRules } from "../header";
 
-describe("String Characters", () => {
-  testText(
-    "Lowercase alpha",
-    "a",
+describe("Strings", () => {
+  multiTest(
+    "String Characters",
+    new Map<string, string[]>([
+      ["a", ["a"]],
+      ["Z", ["Z"]],
+      ["1", ["1"]],
+      [" ", [" "]],
+    ]),
     parserRules.STRING_CHARACTER,
-    ["a"],
     false,
     testPrint
   );
-  testText(
-    "Uppercase alpha",
-    "Z",
-    parserRules.STRING_CHARACTER,
-    ["Z"],
+  multiTest(
+    "Quote parity",
+    new Map<string, string[]>([
+      ["'Hello World'", ["Hello World"]],
+      ["'Hello\"World'", ['Hello"World']],
+      ['"Hello\'World"', ["Hello'World"]],
+      ['"1343 afsdf"', ["1343 afsdf"]],
+      ["\"1343 afsdf'", ["ERROR"]],
+    ]),
+    parserRules.STRING_LITERAL,
     false,
     testPrint
   );
-  testText(
-    "Number",
-    "1",
-    parserRules.STRING_CHARACTER,
-    ["1"],
-    false,
-    testPrint
-  );
-  testText("Space", " ", parserRules.STRING_CHARACTER, [" "], false, testPrint);
 });
