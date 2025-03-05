@@ -28,6 +28,7 @@ const parserRules = {
   SENTENCE: rule<TokenKind, MeaningInterface<any>>(),
   LITERAL: rule<TokenKind, MeaningInterface<any>>(),
   STRING_LITERAL: rule<TokenKind, string>(),
+  STRING_CHARACTER: rule<TokenKind, string>(),
   NUMERIC_LITERAL: rule<TokenKind, number>(),
 };
 
