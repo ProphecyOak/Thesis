@@ -1,11 +1,16 @@
-import { rep_sc } from "typescript-parsec";
-import { multiTest, testPrint, testText } from "../components/tester";
-import { parserRules } from "../header";
+import { rep_sc, rule, str, Token } from "typescript-parsec";
+import {
+  customRule,
+  multiTest,
+  testPrint,
+  testText,
+} from "../components/tester";
+import { parserRules, TokenKind } from "../header";
 
 describe("Strings", () => {
   multiTest(
     "String Characters",
-    new Map<string, string[]>([
+    new Map<string, (string | number)[]>([
       ["a", ["a"]],
       ["Z", ["Z"]],
       ["1", ["1"]],
@@ -17,7 +22,7 @@ describe("Strings", () => {
   );
   multiTest(
     "Quote parity",
-    new Map<string, string[]>([
+    new Map<string, (string | number)[]>([
       ["'Hello World'", ["Hello World"]],
       ["'Hello\"World'", ['Hello"World']],
       ['"Hello\'World"', ["Hello'World"]],
@@ -25,6 +30,30 @@ describe("Strings", () => {
       ["\"1343 afsdf'", ["ERROR"]],
     ]),
     parserRules.STRING_LITERAL,
+    false,
+    testPrint
+  );
+});
+
+describe("Numbers", () => {
+  testText(
+    "Dot character",
+    ".",
+    customRule(str(".")),
+    ["."],
+    false,
+    (token: Token<TokenKind>) => testPrint(token.text)
+  );
+  multiTest(
+    "Number literals",
+    new Map<string, (string | number)[]>([
+      ["23", [23]],
+      ["45.2", [45.2]],
+      ["4.5.2", ["ERROR"]],
+      [".2", [0.2]],
+      ["1.", [1]],
+    ]),
+    parserRules.NUMERIC_LITERAL,
     false,
     testPrint
   );

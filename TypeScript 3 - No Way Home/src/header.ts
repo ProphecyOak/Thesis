@@ -21,6 +21,7 @@ enum TokenKind {
   Space,
   NewLine,
   Quote,
+  Period,
   Other,
 }
 

@@ -1,8 +1,9 @@
-import { Rule } from "typescript-parsec";
+import { Parser, rule, Rule, Token } from "typescript-parsec";
 import { evaluate } from "./parser";
 import "../patterns/patternSetter";
+import { TokenKind } from "../header";
 
-export { testText, multiTest, testPrint };
+export { testText, multiTest, testPrint, customRule };
 
 function captureOutput<T>(results: string[], fx: () => T): T {
   let oldConsole = console.log;
@@ -18,7 +19,7 @@ function testText<T>(
   name: string,
   prgm: string,
   nodeType: Rule<any, T>,
-  expected: string[],
+  expected: (string | number)[],
   DEBUG = false,
   testFx?: (node: T) => void
 ) {
@@ -40,14 +41,14 @@ function testText<T>(
 
 function multiTest<T>(
   name: string,
-  tests: Map<string, string[]>,
+  tests: Map<string, (string | number)[]>,
   nodeType: Rule<any, T>,
   DEBUG = false,
   testFx?: (node: T) => void
 ) {
   describe(name, () => {
     let i = 1;
-    tests.forEach((expected: string[], prgm: string) => {
+    tests.forEach((expected: (string | number)[], prgm: string) => {
       testText(`Test ${i}`, prgm, nodeType, expected, DEBUG, testFx);
       i++;
     });
@@ -56,4 +57,10 @@ function multiTest<T>(
 
 function testPrint(thing: any): void {
   console.log(thing);
+}
+
+function customRule(parser: Parser<TokenKind, any>) {
+  let newRule = rule<TokenKind, Token<TokenKind>>();
+  newRule.setPattern(parser);
+  return newRule;
 }
