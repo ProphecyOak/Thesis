@@ -13,6 +13,11 @@ import { pattern } from "../components/parser";
 import { parserRules, TokenKind } from "../header";
 
 pattern(
+  parserRules.LITERAL,
+  alt(parserRules.STRING_LITERAL, parserRules.NUMERIC_LITERAL)
+);
+
+pattern(
   parserRules.STRING_LITERAL,
   apply(
     combine(tok(TokenKind.Quote), (quote: Token<TokenKind.Quote>) =>
@@ -23,7 +28,10 @@ pattern(
             apply(
               alt(
                 str(quote.text == "'" ? '"' : "'"),
-                kright(str("\\"), tok(TokenKind.Quote))
+                kright(
+                  tok(TokenKind.BackSlash),
+                  alt(tok(TokenKind.Quote), tok(TokenKind.BackSlash))
+                )
               ),
               (token: Token<TokenKind>) => token.text
             )
@@ -38,7 +46,12 @@ pattern(
 pattern(
   parserRules.STRING_CHARACTER,
   apply(
-    alt(tok(TokenKind.Alpha), tok(TokenKind.Numeric), tok(TokenKind.Space)),
+    alt(
+      tok(TokenKind.Alpha),
+      tok(TokenKind.Numeric),
+      tok(TokenKind.Space),
+      tok(TokenKind.Other)
+    ),
     (token: Token<any>) => token.text
   )
 );

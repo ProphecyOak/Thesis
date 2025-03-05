@@ -16,6 +16,7 @@ const lexer = buildLexer([
   [true, /^ /g, TokenKind.Space],
   [true, /^\n/g, TokenKind.NewLine],
   [true, /^['"]/g, TokenKind.Quote],
+  [true, /^\\/g, TokenKind.BackSlash],
   [true, /^./g, TokenKind.Other],
 ]);
 

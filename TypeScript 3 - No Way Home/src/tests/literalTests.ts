@@ -60,3 +60,18 @@ describe("Numbers", () => {
     testPrint
   );
 });
+
+multiTest(
+  "All kinds of Literals",
+  new Map<string, (string | number)[]>([
+    ["23", [23]],
+    ["'45.2'", ["45.2"]],
+    ["4.5.2", ["ERROR"]],
+    ["'things and stuff'", ["things and stuff"]],
+    ["1.", [1]],
+    ["'\\\\'", ["\\"]],
+  ]),
+  parserRules.LITERAL,
+  false,
+  testPrint
+);
