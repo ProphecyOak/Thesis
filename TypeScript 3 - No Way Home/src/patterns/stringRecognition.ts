@@ -3,6 +3,7 @@ import {
   apply,
   combine,
   kleft,
+  kright,
   rep_sc,
   str,
   tok,
@@ -20,7 +21,10 @@ pattern(
           alt(
             parserRules.STRING_CHARACTER,
             apply(
-              str(quote.text == "'" ? '"' : "'"),
+              alt(
+                str(quote.text == "'" ? '"' : "'"),
+                kright(str("\\"), tok(TokenKind.Quote))
+              ),
               (token: Token<TokenKind>) => token.text
             )
           )

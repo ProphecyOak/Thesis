@@ -28,6 +28,8 @@ describe("Strings", () => {
       ['"Hello\'World"', ["Hello'World"]],
       ['"1343 afsdf"', ["1343 afsdf"]],
       ["\"1343 afsdf'", ["ERROR"]],
+      ['"1343\\" afsdf"', ['1343" afsdf']],
+      ['"1343\\" \\\'afsdf"', ["1343\" 'afsdf"]],
     ]),
     parserRules.STRING_LITERAL,
     false,
