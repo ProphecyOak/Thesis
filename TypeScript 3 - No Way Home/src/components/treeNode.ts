@@ -1,21 +1,55 @@
-import { TreeLabel, TreeNodeInterface } from "../header";
+import { MeaningInterface, TreeLabel, TreeNodeInterface } from "../header";
+import { Meaning } from "./meaning";
 
 export { TreeNode };
 
 class TreeNode implements TreeNodeInterface {
+  private label: TreeLabel;
+  private parent: TreeNodeInterface | undefined;
+  private children: TreeNodeInterface[] = new Array<TreeNodeInterface>();
+  private text: string;
+  private meaning: MeaningInterface<any>;
+
+  constructor(
+    label: TreeLabel,
+    text: string,
+    children?: TreeNodeInterface[],
+    parent?: TreeNodeInterface
+  ) {
+    this.label = label;
+    this.text = text;
+    this.meaning = new Meaning(this);
+    if (parent) this.parent = parent;
+    if (children) this.children = children;
+  }
+
   isRoot(): boolean {
-    throw new Error("TreeNode.isRoot() not implemented yet.");
+    return parent == null;
   }
+
   getLabel(): TreeLabel {
-    throw new Error("TreeNode.getLabel() not implemented yet.");
+    return this.label;
   }
+
+  getText(): string {
+    return this.text;
+  }
+
+  getMeaning(): MeaningInterface<any> {
+    return this.meaning;
+  }
+
   addChild(child: TreeNodeInterface): TreeNodeInterface {
-    throw new Error("TreeNode.addChild() not implemented yet.");
+    this.children.push(child);
+    return this;
   }
+
   getParent(): TreeNodeInterface {
-    throw new Error("TreeNode.getParent() not implemented yet.");
+    if (this.isRoot()) throw new Error("TreeNode has no parent.");
+    return this.parent as TreeNodeInterface;
   }
+
   mapChildren<T>(f: (t: TreeNodeInterface) => T): T[] {
-    throw new Error("TreeNode.getParent() not implemented yet.");
+    return this.children.map(f);
   }
 }

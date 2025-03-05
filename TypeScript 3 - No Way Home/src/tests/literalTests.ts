@@ -1,4 +1,4 @@
-import { rep_sc, rule, str, Token } from "typescript-parsec";
+import { str, Token } from "typescript-parsec";
 import {
   customRule,
   multiTest,

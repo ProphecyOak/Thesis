@@ -1,3 +1,5 @@
 // ADD NEW PATTERN FILES HERE
-import "./stringRecognition";
-import "./numberRecognition";
+import "./stringRec";
+import "./numberRec";
+import "./verbPhraseRec";
+import "./wordRec";

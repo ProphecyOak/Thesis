@@ -8,6 +8,7 @@ export {
   StateInterface,
   Argument,
   TokenKind,
+  LexicalCategory,
 };
 
 enum LexicalCategory {
@@ -26,7 +27,9 @@ enum TokenKind {
 }
 
 const parserRules = {
-  SENTENCE: rule<TokenKind, MeaningInterface<any>>(),
+  SENTENCE: rule<TokenKind, TreeNodeInterface>(),
+  VERB: rule<TokenKind, TreeNodeInterface>(),
+  WORD: rule<TokenKind, string>(),
   LITERAL: rule<TokenKind, MeaningInterface<any>>(),
   STRING_LITERAL: rule<TokenKind, string>(),
   STRING_CHARACTER: rule<TokenKind, string>(),
@@ -43,6 +46,10 @@ interface TreeNodeInterface {
   isRoot(): boolean;
   // Returns the label of the tree node.
   getLabel(): TreeLabel;
+  // Returns the text encompassed by this node.
+  getText(): string;
+  // Returns the meaning of this node.
+  getMeaning(): MeaningInterface<any>;
   // Adds the given node to the node's children and returns the parent.
   addChild(t: TreeNodeInterface): TreeNodeInterface;
   // Returns the parent of the tree node.
@@ -57,8 +64,12 @@ enum Argument {
 }
 
 interface MeaningInterface<O> {
+  // Assigns a state-taking function to derive meaning.
+  assignMeaning(f: (state: StateInterface) => O): void;
+  // Returns the corresponding tree node.
+  getNode(): TreeNodeInterface;
   // Returns the fully evaluated version of the segment.
-  getMeaning(): O;
+  evaluate(state: StateInterface): O;
   // Gives the segment another argument, and returns whether or not the meaning is available.
   giveArgument(arg: Argument, value: MeaningInterface<any>): boolean;
   // Returns the alt() parser for the different arguments to look for next.
@@ -74,4 +85,10 @@ interface StateInterface {
   childState(): StateInterface;
   // Returns the parent state if there is one.
   parentState(): StateInterface;
+  // Adds new symbol to proper map.
+  addSymbol(
+    symbol: string,
+    cat: LexicalCategory,
+    value: MeaningInterface<any>
+  ): void;
 }
