@@ -1,14 +1,16 @@
 import {
   apply,
   buildLexer,
+  combine,
   expectEOF,
   expectSingleResult,
+  nil,
   Parser,
   Rule,
 } from "typescript-parsec";
-import { TokenKind } from "../header";
+import { MeaningInterface, TokenKind, TreeNodeInterface } from "../header";
 
-export { evaluate, pattern };
+export { evaluate, pattern, recursivelyGrabArguments };
 
 const lexer = buildLexer([
   [true, /^[0-9]*/g, TokenKind.Numeric],
@@ -33,6 +35,20 @@ function pattern<T>(
       return node;
     })
   );
+}
+
+function recursivelyGrabArguments(
+  meaning: MeaningInterface<any>
+): Parser<TokenKind, MeaningInterface<any>> {
+  console.log(
+    `This meaning has ${meaning.argumentsFull() ? "no" : "at least one"} argument missing.`
+  );
+  if (meaning.argumentsFull()) return apply(nil(), () => meaning);
+  let nextArg = meaning.nextArgument();
+  return combine(nextArg.frame, (val: MeaningInterface<any>) => {
+    meaning.giveArgument(nextArg.arg, val);
+    return recursivelyGrabArguments(meaning);
+  });
 }
 
 function evaluate<T>(nodeType: Rule<any, T>, expr: string, debug?: boolean): T {

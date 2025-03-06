@@ -37,3 +37,5 @@ class Meaning<T> implements MeaningInterface<T> {
     throw new Error("Meaning.nextArgument() not implemented yet.");
   }
 }
+
+// WORDS NEED TO WORK DIFFERENTLY FROM MEANINGS!!!!!

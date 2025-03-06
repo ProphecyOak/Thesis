@@ -28,9 +28,11 @@ function testText<T>(
     const output = captureOutput(results, () => {
       try {
         return evaluate(nodeType, prgm, DEBUG);
-      } catch (error) {
-        if (DEBUG) console.log(error);
-        console.log("ERROR");
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          if (DEBUG) console.log(error);
+          console.log(`ERROR: ${error.message}`);
+        }
       }
     });
     if (output != null && testFx != undefined)
