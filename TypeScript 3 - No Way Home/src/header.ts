@@ -9,6 +9,7 @@ export {
   Argument,
   TokenKind,
   LexicalCategory,
+  LexicalItemInterface,
 };
 
 enum LexicalCategory {
@@ -64,8 +65,6 @@ enum Argument {
 }
 
 interface MeaningInterface<O> {
-  // Assigns a state-taking function to derive meaning.
-  assignMeaning(f: (state: StateInterface) => O): void;
   // Returns the corresponding tree node.
   getNode(): TreeNodeInterface;
   // Returns the fully evaluated version of the segment.
@@ -80,7 +79,7 @@ interface StateInterface {
   // Returns whether or not this state is the root state.
   isRoot(): boolean;
   // Returns the meaning found under the lexical category with the given symbol
-  lookupSymbol(symbol: string, cat: LexicalCategory): MeaningInterface<any>;
+  lookupSymbol(symbol: string, cat: LexicalCategory): LexicalItemInterface;
   // Returns a new state which is a child of this one.
   childState(): StateInterface;
   // Returns the parent state if there is one.
@@ -89,6 +88,17 @@ interface StateInterface {
   addSymbol(
     symbol: string,
     cat: LexicalCategory,
-    value: MeaningInterface<any>
+    value: LexicalItemInterface
   ): void;
+}
+
+interface LexicalItemInterface {
+  getSymbol(): string;
+  getCategory(): LexicalCategory;
+  setMeaning(
+    f: (wordInstance: TreeNodeInterface) => (state: StateInterface) => any
+  ): LexicalItemInterface;
+  getMeaning(node: TreeNodeInterface): (state: StateInterface) => any;
+  requireArgument(arg: Argument): LexicalItemInterface;
+  getLocal(node: TreeNodeInterface): MeaningInterface<any>;
 }

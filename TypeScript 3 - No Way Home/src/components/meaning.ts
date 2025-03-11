@@ -12,13 +12,11 @@ export { Meaning };
 class Meaning<T> implements MeaningInterface<T> {
   private node: TreeNodeInterface;
   private meaningFunction?: (state: StateInterface) => T;
+  private argumentsNeeded: Argument[];
 
-  constructor(node: TreeNodeInterface) {
+  constructor(node: TreeNodeInterface, reqArgs: Argument[]) {
     this.node = node;
-  }
-
-  assignMeaning(f: (state: StateInterface) => T): void {
-    this.meaningFunction = f;
+    this.argumentsNeeded = reqArgs;
   }
 
   getNode(): TreeNodeInterface {

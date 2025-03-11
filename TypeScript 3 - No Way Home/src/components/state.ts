@@ -1,19 +1,24 @@
-import { LexicalCategory, MeaningInterface, StateInterface } from "../header";
+import {
+  LexicalCategory,
+  LexicalItemInterface,
+  MeaningInterface,
+  StateInterface,
+} from "../header";
 
 export { State };
 
 class State implements StateInterface {
   private parent?: StateInterface;
-  private symbolTable: Map<LexicalCategory, Map<string, MeaningInterface<any>>>;
+  private symbolTable: Map<LexicalCategory, Map<string, LexicalItemInterface>>;
 
   constructor() {
     this.symbolTable = new Map<
       LexicalCategory,
-      Map<string, MeaningInterface<any>>
+      Map<string, LexicalItemInterface>
     >();
     for (let key in LexicalCategory) {
       let value = LexicalCategory[key as keyof typeof LexicalCategory];
-      this.symbolTable.set(value, new Map<string, MeaningInterface<any>>());
+      this.symbolTable.set(value, new Map<string, LexicalItemInterface>());
     }
   }
 
@@ -21,7 +26,7 @@ class State implements StateInterface {
     return this.parent == undefined;
   }
 
-  lookupSymbol(symbol: string, cat: LexicalCategory): MeaningInterface<any> {
+  lookupSymbol(symbol: string, cat: LexicalCategory): LexicalItemInterface {
     let localResult = this.symbolTable.get(cat)?.get(symbol);
     if (localResult != undefined) return localResult;
     if (this.isRoot())
@@ -40,7 +45,7 @@ class State implements StateInterface {
   addSymbol(
     symbol: string,
     cat: LexicalCategory,
-    value: MeaningInterface<any>
+    value: LexicalItemInterface
   ): void {
     this.symbolTable.get(cat)?.set(symbol, value);
   }
