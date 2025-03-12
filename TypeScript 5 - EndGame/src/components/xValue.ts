@@ -6,13 +6,23 @@ interface SymbolTable {
 interface Value<T> {
   calculateValue(lookupTable: SymbolTable): void;
   getValue(): () => T;
+  getSymbol(): string;
+  setParent(parent: MergeValue<any, any>): void;
 }
 
-class LitValue<T> implements Value<T> {
+class LitValue<T extends string | number> implements Value<T> {
   private value: () => T;
+  private parent?: MergeValue<any, any>;
 
   constructor(val: T) {
     this.value = () => val;
+  }
+  getSymbol(): string {
+    return this.value().toString();
+  }
+
+  setParent(parent: MergeValue<any, any>) {
+    this.parent = parent;
   }
 
   calculateValue(lookupTable: SymbolTable) {}
@@ -26,6 +36,7 @@ class LexValue<T> implements Value<T> {
   private symbol: string;
   private value?: () => T;
   private restOfSentence = new Array<Value<any>>();
+  private parent?: MergeValue<any, any>;
 
   constructor(symbol: string) {
     this.symbol = symbol;
@@ -33,6 +44,10 @@ class LexValue<T> implements Value<T> {
 
   getSymbol(): string {
     return this.symbol;
+  }
+
+  setParent(parent: MergeValue<any, any>) {
+    this.parent = parent;
   }
 
   setRest(rest: Value<any>[]) {
@@ -63,23 +78,34 @@ class MergeValue<T, S> implements Value<T> {
   private fx: Value<T> | Value<(input: S) => T>;
   private arg?: Value<S>;
   private composeMode: MergeMode;
+  private parent?: MergeValue<any, any>;
+  private children = new Array<Value<any>>();
 
   constructor(mode: MergeMode, fx: Value<T>, arg?: any);
   constructor(mode: MergeMode, fx: Value<(input: S) => T>, arg: Value<S>);
   constructor(mode: MergeMode, arg: Value<S>, fx: Value<(input: S) => T>) {
     switch (mode) {
       case MergeMode.Composing:
-        this.fx = fx;
         this.arg = arg;
-        break;
+        this.arg.setParent(this);
+        this.children.push(this.arg);
       case MergeMode.NonBranching:
         this.fx = fx;
+        this.fx.setParent(this);
+        this.children.push(this.fx);
         break;
       case MergeMode.Union:
         throw new Error("Union merge not implemented.");
         break;
     }
     this.composeMode = mode;
+  }
+  getSymbol(): string {
+    return `${this.fx.getSymbol()}(${this.arg?.getSymbol()})`;
+  }
+
+  setParent(parent: MergeValue<any, any>) {
+    this.parent = parent;
   }
 
   calculateValue(lookupTable: SymbolTable): void {
