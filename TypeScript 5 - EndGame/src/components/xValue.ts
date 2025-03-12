@@ -1,4 +1,4 @@
-export { LitValue, LexValue };
+export { Value, LitValue, LexValue, MergeValue };
 
 interface SymbolTable {
   lookup(symbol: string): any;
@@ -25,9 +25,18 @@ class LitValue<T> implements Value<T> {
 class LexValue<T> implements Value<T> {
   private symbol: string;
   private value?: () => T;
+  private restOfSentence = new Array<Value<any>>();
 
   constructor(symbol: string) {
     this.symbol = symbol;
+  }
+
+  getSymbol(): string {
+    return this.symbol;
+  }
+
+  setRest(rest: Value<any>[]) {
+    this.restOfSentence = rest;
   }
 
   calculateValue(lookupTable: SymbolTable) {

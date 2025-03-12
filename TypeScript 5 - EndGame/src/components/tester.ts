@@ -2,8 +2,9 @@ import { Parser, rule, Rule, Token } from "typescript-parsec";
 import { evaluate } from "./parser";
 import "../patterns/patternSetter";
 import { TokenKind } from "../header";
+import { Value } from "./xValue";
 
-export { testText, multiTest, testPrint, customRule };
+export { testText, multiTest, testPrint, customRule, testValue };
 
 function captureOutput<T>(results: string[], fx: () => T): T {
   let oldConsole = console.log;
@@ -57,6 +58,9 @@ function multiTest<T>(
 
 function testPrint(thing: any): void {
   console.log(thing);
+}
+function testValue(value: Value<any>) {
+  testPrint(value.getValue()());
 }
 
 function customRule(parser: Parser<TokenKind, any>) {

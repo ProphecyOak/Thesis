@@ -15,7 +15,6 @@ enum TokenKind {
 
 const parserRules = {
   SENTENCE: rule<TokenKind, any>(),
-  VERB: rule<TokenKind, any>(),
   WORD: rule<TokenKind, LexValue<any>>(),
   LITERAL: rule<TokenKind, LitValue<string | number>>(),
   STRING_LITERAL: rule<TokenKind, string>(),

@@ -4,8 +4,10 @@ import {
   multiTest,
   testPrint,
   testText,
+  testValue,
 } from "../components/tester";
 import { parserRules, TokenKind } from "../header";
+import { LitValue, Value } from "../components/xValue";
 
 describe("Strings", () => {
   multiTest(
@@ -22,7 +24,7 @@ describe("Strings", () => {
   );
   multiTest(
     "Quote parity",
-    new Map<string, (string | number)[]>([
+    new Map<string, string[]>([
       ["'Hello World'", ["Hello World"]],
       ["'Hello\"World'", ['Hello"World']],
       ['"Hello\'World"', ["Hello'World"]],
@@ -73,5 +75,5 @@ multiTest(
   ]),
   parserRules.LITERAL,
   false,
-  testPrint
+  testValue
 );

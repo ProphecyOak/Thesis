@@ -1,4 +1,5 @@
 import { multiTest, testPrint } from "../components/tester";
+import { LexValue } from "../components/xValue";
 import { parserRules } from "../header";
 
 multiTest(
@@ -11,5 +12,5 @@ multiTest(
   ]),
   parserRules.WORD,
   false,
-  testPrint
+  (value: LexValue<any>) => testPrint(value.getSymbol())
 );

@@ -11,13 +11,13 @@ import {
 } from "typescript-parsec";
 import { pattern } from "../components/parser";
 import { parserRules, TokenKind } from "../header";
-import { XValue } from "../components/xValue";
+import { LitValue } from "../components/xValue";
 
 pattern(
   parserRules.LITERAL,
   apply(
     alt(parserRules.STRING_LITERAL, parserRules.NUMERIC_LITERAL),
-    (val: any) => new XValue(val)
+    (val: any) => new LitValue(val)
   )
 );
 
@@ -47,6 +47,7 @@ pattern(
     (values: string[]) => values.join("")
   )
 );
+
 pattern(
   parserRules.STRING_CHARACTER,
   apply(

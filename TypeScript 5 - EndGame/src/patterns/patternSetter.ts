@@ -2,3 +2,4 @@
 import "./stringRec";
 import "./numberRec";
 import "./wordRec";
+import "./sentenceRec";
