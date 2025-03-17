@@ -1,14 +1,14 @@
-import { apply, combine, kleft, nil, rep_sc, str } from "typescript-parsec";
+import { alt, apply, combine, kleft, rep_sc, str } from "typescript-parsec";
 import { pattern } from "../components/parser";
 import { parserRules, TokenKind } from "../header";
-import { LexValue } from "../components/xValue";
+import { LexValue, Value } from "../components/xValue";
 
 pattern(
   parserRules.SENTENCE,
   combine(parserRules.WORD, (word: LexValue<any>) =>
     apply(
-      kleft(rep_sc(parserRules.WORD), str(".")),
-      (words: LexValue<any>[]) => {
+      rep_sc(alt(parserRules.WORD, parserRules.LITERAL)),
+      (words: Value<any>[]) => {
         word.setRest(words);
         return word;
       }

@@ -6,13 +6,13 @@ import {
   Parser,
   Rule,
 } from "typescript-parsec";
-import { TokenKind } from "../header";
+import { parserRules, TokenKind } from "../header";
 
 export { evaluate, pattern };
 
 const lexer = buildLexer([
-  [true, /^[0-9]*/g, TokenKind.Numeric],
-  [true, /^[a-zA-Z]*/g, TokenKind.Alpha],
+  [true, /^[0-9]+/g, TokenKind.Numeric],
+  [true, /^[a-zA-Z]+/g, TokenKind.Alpha],
   [true, /^ /g, TokenKind.Space],
   [true, /^\n/g, TokenKind.NewLine],
   [true, /^['"]/g, TokenKind.Quote],
@@ -37,6 +37,7 @@ function pattern<T>(
 
 function evaluate<T>(nodeType: Rule<any, T>, expr: string, debug?: boolean): T {
   DEBUG = debug == undefined ? false : debug;
+  if (nodeType == parserRules.SENTENCE) expr = expr.slice(0, expr.length - 1);
   const parseResult = expectSingleResult(
     expectEOF(nodeType.parse(lexer.parse(expr)))
   );

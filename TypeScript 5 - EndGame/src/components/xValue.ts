@@ -35,7 +35,7 @@ class LitValue<T extends string | number> implements Value<T> {
 class LexValue<T> implements Value<T> {
   private symbol: string;
   private value?: () => T;
-  private restOfSentence = new Array<Value<any>>();
+  private restOfPhrase = new Array<Value<any>>();
   private parent?: MergeValue<any, any>;
 
   constructor(symbol: string) {
@@ -51,7 +51,11 @@ class LexValue<T> implements Value<T> {
   }
 
   setRest(rest: Value<any>[]) {
-    this.restOfSentence = rest;
+    this.restOfPhrase = rest;
+  }
+
+  getRest(): Value<any>[] {
+    return this.restOfPhrase;
   }
 
   calculateValue(lookupTable: SymbolTable) {

@@ -1,6 +1,9 @@
 import {
   apply,
+  combine,
+  fail,
   kright,
+  nil,
   opt_sc,
   rep_sc,
   seq,
@@ -13,7 +16,7 @@ import { parserRules, TokenKind } from "../header";
 
 pattern(
   parserRules.NUMERIC_LITERAL,
-  apply(
+  combine(
     seq(
       rep_sc(tok(TokenKind.Numeric)),
       opt_sc(kright(str("."), rep_sc(tok(TokenKind.Numeric))))
@@ -23,15 +26,18 @@ pattern(
         Token<TokenKind.Numeric>[],
         Token<TokenKind.Numeric>[] | undefined,
       ]
-    ) =>
-      Number(
-        numberParts[0].map((token: Token<TokenKind.Numeric>) => token.text) +
-          (numberParts[1] != undefined
-            ? "." +
-              numberParts[1].map(
-                (token: Token<TokenKind.Numeric>) => token.text
-              )
-            : "")
-      )
+    ) => {
+      let firstPart = numberParts[0].map(
+        (token: Token<TokenKind.Numeric>) => token.text
+      );
+      let secondPart =
+        numberParts[1] != undefined
+          ? "." +
+            numberParts[1].map((token: Token<TokenKind.Numeric>) => token.text)
+          : "";
+      if (secondPart == ".") return fail("Not actually a number");
+      let newNum = Number(firstPart + secondPart);
+      return apply(nil(), () => newNum);
+    }
   )
 );
