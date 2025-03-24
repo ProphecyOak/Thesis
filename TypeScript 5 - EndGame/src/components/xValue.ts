@@ -1,42 +1,48 @@
-export { Value, LitValue, LexValue, MergeValue };
+import { Token } from "typescript-parsec";
 
-interface SymbolTable {
-  lookup(symbol: string): any;
+export { Value, LitValue, LexValue, MergeValue, SymbolTable, MergeMode };
+
+interface SymbolTable<T> {
+  words: Map<string, T>;
+  lookup(symbol: string): T;
 }
 interface Value<T> {
-  calculateValue(lookupTable: SymbolTable): void;
+  attachTable(lookupTable: SymbolTable<any>): void;
   getValue(): () => T;
   getSymbol(): string;
   setParent(parent: MergeValue<any, any>): void;
 }
 
-class LitValue<T extends string | number> implements Value<T> {
-  private value: () => T;
+class LitValue<T> implements Value<T> {
+  private value: T;
   private parent?: MergeValue<any, any>;
 
   constructor(val: T) {
-    this.value = () => val;
+    this.value = val;
   }
   getSymbol(): string {
-    return this.value().toString();
+    if (typeof this.value == "string" || typeof this.value == "number")
+      return this.value.toString();
+    return "Complicated Type";
   }
 
   setParent(parent: MergeValue<any, any>) {
     this.parent = parent;
   }
 
-  calculateValue(lookupTable: SymbolTable) {}
+  attachTable(lookupTable: SymbolTable<any>) {}
 
   getValue(): () => T {
-    return this.value;
+    return () => this.value;
   }
 }
 
 class LexValue<T> implements Value<T> {
   private symbol: string;
   private value?: () => T;
-  private restOfPhrase = new Array<Value<any>>();
+  private restOfPhrase = "";
   private parent?: MergeValue<any, any>;
+  private table?: SymbolTable<any>;
 
   constructor(symbol: string) {
     this.symbol = symbol;
@@ -50,24 +56,23 @@ class LexValue<T> implements Value<T> {
     this.parent = parent;
   }
 
-  setRest(rest: Value<any>[]) {
+  setRest(rest: string) {
     this.restOfPhrase = rest;
   }
 
-  getRest(): Value<any>[] {
+  getRest(): string {
     return this.restOfPhrase;
   }
 
-  calculateValue(lookupTable: SymbolTable) {
-    this.value = lookupTable.lookup(this.symbol);
+  attachTable(lookupTable: SymbolTable<any>) {
+    this.table = lookupTable;
   }
 
   getValue(): () => T {
-    if (this.value == undefined)
-      throw new Error(
-        `Word with symbol: ${this.symbol} has not been looked up yet.`
-      );
-    return this.value;
+    if (this.table == undefined)
+      throw new Error(`No lookup table attached for ${this.getSymbol()}`);
+    this.value = this.table.lookup(this.symbol)(this);
+    return this.value as () => T;
   }
 }
 
@@ -84,6 +89,7 @@ class MergeValue<T, S> implements Value<T> {
   private composeMode: MergeMode;
   private parent?: MergeValue<any, any>;
   private children = new Array<Value<any>>();
+  private table?: SymbolTable<any>;
 
   constructor(mode: MergeMode, fx: Value<T>, arg?: any);
   constructor(mode: MergeMode, fx: Value<(input: S) => T>, arg: Value<S>);
@@ -112,24 +118,23 @@ class MergeValue<T, S> implements Value<T> {
     this.parent = parent;
   }
 
-  calculateValue(lookupTable: SymbolTable): void {
+  attachTable(lookupTable: SymbolTable<any>): void {
+    this.table = lookupTable;
+  }
+  getValue(): () => T {
+    if (this.table == undefined)
+      throw new Error(`No lookup table attached for ${this.getSymbol()}`);
     switch (this.composeMode) {
       case MergeMode.NonBranching:
-        let daughterValue = this.fx.getValue();
-        this.value = daughterValue as () => T;
+        this.value = this.fx.getValue as () => T;
         break;
       case MergeMode.Composing:
         if (this.arg == undefined)
           throw new Error("Argument not defined for composing merge mode.");
-        let fxValue = this.fx.getValue() as () => (input: S) => T;
-        let argValue = this.arg.getValue();
-        this.value = () => fxValue()(argValue());
+        this.value = () =>
+          (this.fx.getValue()() as (input: S) => T)(this.arg!.getValue()());
         break;
     }
-  }
-  getValue(): () => T {
-    if (this.value == undefined)
-      throw new Error(`This node has not been merged.`);
-    return this.value;
+    return this.value as () => T;
   }
 }

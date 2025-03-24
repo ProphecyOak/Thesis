@@ -7,8 +7,10 @@ import {
   Rule,
 } from "typescript-parsec";
 import { parserRules, TokenKind } from "../header";
+import assert from "assert";
+import { LexValue, SymbolTable } from "./xValue";
 
-export { evaluate, pattern };
+export { evaluate, pattern, lexer };
 
 const lexer = buildLexer([
   [true, /^[0-9]+/g, TokenKind.Numeric],
@@ -35,11 +37,25 @@ function pattern<T>(
   );
 }
 
-function evaluate<T>(nodeType: Rule<any, T>, expr: string, debug?: boolean): T {
+function evaluate(
+  nodeType: Rule<any, any>,
+  expr: string,
+  lookupTable: SymbolTable<any>,
+  debug?: boolean
+): any {
   DEBUG = debug == undefined ? false : debug;
-  if (nodeType == parserRules.SENTENCE) expr = expr.slice(0, expr.length - 1);
+  if (nodeType == parserRules.SENTENCE) {
+    assert(expr[expr.length - 1] == ".");
+    expr = expr.slice(0, expr.length - 1);
+  }
+  // if (DEBUG) console.debug(lexer.parse(expr));
   const parseResult = expectSingleResult(
     expectEOF(nodeType.parse(lexer.parse(expr)))
   );
+  if (nodeType == parserRules.SENTENCE) {
+    if (DEBUG) console.log(parseResult);
+    parseResult.attachTable(lookupTable);
+  }
+
   return parseResult;
 }

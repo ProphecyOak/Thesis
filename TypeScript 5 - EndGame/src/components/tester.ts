@@ -1,10 +1,19 @@
-import { Parser, rule, Rule, Token } from "typescript-parsec";
-import { evaluate } from "./parser";
+import {
+  expectEOF,
+  expectSingleResult,
+  Parser,
+  rule,
+  Rule,
+  Token,
+} from "typescript-parsec";
+import { evaluate, lexer } from "./parser";
 import "../patterns/patternSetter";
-import { TokenKind } from "../header";
-import { Value } from "./xValue";
+import { Argument, TokenKind } from "../header";
+import { LexValue, SymbolTable, Value } from "./xValue";
+import { ArgumentFrame } from "./wordArgument";
+import { testTable } from "./lexicon";
 
-export { testText, multiTest, testPrint, customRule, testValue };
+export { testText, multiTest, testPrint, customRule, testValue, testRun };
 
 function captureOutput<T>(results: string[], fx: () => T): T {
   let oldConsole = console.log;
@@ -28,7 +37,7 @@ function testText<T>(
     const results = new Array<string>();
     const output = captureOutput(results, () => {
       try {
-        return evaluate(nodeType, prgm, DEBUG);
+        return evaluate(nodeType, prgm, testTable, DEBUG);
       } catch (error) {
         if (DEBUG) console.log(error);
         console.log("ERROR");
@@ -63,8 +72,12 @@ function testValue(value: Value<any>) {
   testPrint(value.getValue()());
 }
 
-function customRule(parser: Parser<TokenKind, any>) {
-  let newRule = rule<TokenKind, Token<TokenKind>>();
+function testRun(value: Value<any>) {
+  value.getValue()();
+}
+
+function customRule<T>(parser: Parser<TokenKind, T>) {
+  let newRule = rule<TokenKind, T>();
   newRule.setPattern(parser);
   return newRule;
 }
