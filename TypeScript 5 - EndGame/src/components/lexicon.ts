@@ -99,3 +99,19 @@ function grabArgument(
     );
   }
 }
+
+// function _grabArgument(
+//   argType: Argument,
+//   table: SymbolTable<any>,
+//   vBar: Value<any>
+// ): MergeValue<any, any> {
+//   return null as unknown as MergeValue<any, any>;
+// }
+
+// class Sentence {
+//   verb: LexValue<any>;
+//   constructor(verb: LexValue<any>) {
+//     this.verb = verb;
+//   }
+//   useArgument(argType: Argument) {}
+// }

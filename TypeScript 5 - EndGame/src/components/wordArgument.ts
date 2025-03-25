@@ -25,8 +25,33 @@ type FramePattern = (
 class ArgumentFrame {
   static frames = new Map<Argument, FramePattern>();
 
-  constructor(frameType: Argument, pattern: FramePattern) {
-    ArgumentFrame.frames.set(frameType, pattern);
+  // constructor(frameType: Argument, pattern: FramePattern) {
+  //   ArgumentFrame.frames.set(frameType, pattern);
+  // }
+  constructor(
+    frameType: Argument,
+    pattern: Parser<TokenKind, Value<any>>,
+    newValueFx: (val: Value<any>) => Value<any> = (val: Value<any>) => val
+  ) {
+    ArgumentFrame.frames.set(
+      frameType,
+      (vBar: Value<any>, lookup: SymbolTable<any>) =>
+        apply(
+          seq(pattern, parserRules.REST),
+          ([newArg, rest]: [Value<any>, string]) => {
+            newArg.attachTable(lookup);
+            let mergedTheme = new MergeValue(
+              MergeMode.Composing,
+              newValueFx(newArg),
+              vBar
+            );
+            mergedTheme.attachTable(lookup);
+            if (rest.startsWith(" ")) rest = rest.slice(1);
+            mergedTheme.setRest(rest);
+            return mergedTheme;
+          }
+        )
+    );
   }
 
   static getFrame(
@@ -42,34 +67,10 @@ class ArgumentFrame {
 
 new ArgumentFrame(
   Argument.Theme,
-  (vBar: Value<any>, lookup: SymbolTable<any>) =>
-    apply(
-      seq(alt_sc(parserRules.LITERAL, parserRules.WORD), parserRules.REST),
-      ([theme, rest]: [Value<any>, string]) => {
-        theme.attachTable(lookup);
-        let mergedTheme = new MergeValue(MergeMode.Composing, theme, vBar);
-        mergedTheme.attachTable(lookup);
-        if (rest.startsWith(" ")) rest = rest.slice(1);
-        mergedTheme.setRest(rest);
-        return mergedTheme;
-      }
-    )
+  alt_sc(parserRules.LITERAL, parserRules.WORD)
 );
 new ArgumentFrame(
   Argument.Destination,
-  (vBar: Value<any>, lookup: SymbolTable<any>) =>
-    apply(
-      seq(kright(str("as"), parserRules.WORD), parserRules.REST),
-      ([destination, rest]: [Value<any>, string]) => {
-        let mergedTheme = new MergeValue(
-          MergeMode.Composing,
-          new LitValue(destination),
-          vBar
-        );
-        mergedTheme.attachTable(lookup);
-        if (rest.startsWith(" ")) rest = rest.slice(1);
-        mergedTheme.setRest(rest);
-        return mergedTheme;
-      }
-    )
+  kright(str("as"), parserRules.WORD),
+  (val: Value<any>) => new LitValue(val)
 );

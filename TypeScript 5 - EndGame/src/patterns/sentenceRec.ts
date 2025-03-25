@@ -17,9 +17,10 @@ pattern(
   parserRules.SENTENCE,
   apply(
     seq(parserRules.WORD, parserRules.REST),
-    (rest: [LexValue<any>, string]) => {
-      const verb = rest[0];
-      const restOfSentence = rest[1].slice(0, rest[1].length - 1);
+    ([verb, rest]: [LexValue<any>, string]) => {
+      const lastIndex = rest.length - 1;
+      const restOfSentence =
+        rest[lastIndex] == "." ? rest.slice(0, lastIndex) : rest;
       verb.setRest(restOfSentence);
       return verb;
     }
