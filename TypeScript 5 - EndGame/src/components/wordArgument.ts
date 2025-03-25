@@ -1,13 +1,19 @@
-import { alt, alt_sc, apply, nil, Parser } from "typescript-parsec";
-import { Argument, parserRules, TokenKind } from "../header";
 import {
-  LexValue,
-  LitValue,
-  MergeMode,
-  MergeValue,
-  SymbolTable,
-  Value,
-} from "./xValue";
+  alt,
+  alt_sc,
+  apply,
+  kleft,
+  kright,
+  nil,
+  opt_sc,
+  Parser,
+  seq,
+  str,
+  tok,
+} from "typescript-parsec";
+import { Argument, parserRules, TokenKind } from "../header";
+import { LexValue, LitValue, MergeMode, MergeValue, Value } from "./xValue";
+import { SymbolTable } from "./lexicon";
 
 export { ArgumentFrame };
 
@@ -38,10 +44,31 @@ new ArgumentFrame(
   Argument.Theme,
   (vBar: Value<any>, lookup: SymbolTable<any>) =>
     apply(
-      alt_sc(parserRules.LITERAL, parserRules.WORD),
-      (theme: Value<any>) => {
+      seq(alt_sc(parserRules.LITERAL, parserRules.WORD), parserRules.REST),
+      ([theme, rest]: [Value<any>, string]) => {
+        theme.attachTable(lookup);
         let mergedTheme = new MergeValue(MergeMode.Composing, theme, vBar);
         mergedTheme.attachTable(lookup);
+        if (rest.startsWith(" ")) rest = rest.slice(1);
+        mergedTheme.setRest(rest);
+        return mergedTheme;
+      }
+    )
+);
+new ArgumentFrame(
+  Argument.Destination,
+  (vBar: Value<any>, lookup: SymbolTable<any>) =>
+    apply(
+      seq(kright(str("as"), parserRules.WORD), parserRules.REST),
+      ([destination, rest]: [Value<any>, string]) => {
+        let mergedTheme = new MergeValue(
+          MergeMode.Composing,
+          new LitValue(destination),
+          vBar
+        );
+        mergedTheme.attachTable(lookup);
+        if (rest.startsWith(" ")) rest = rest.slice(1);
+        mergedTheme.setRest(rest);
         return mergedTheme;
       }
     )

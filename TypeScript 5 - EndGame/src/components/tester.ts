@@ -9,11 +9,19 @@ import {
 import { evaluate, lexer } from "./parser";
 import "../patterns/patternSetter";
 import { Argument, TokenKind } from "../header";
-import { LexValue, SymbolTable, Value } from "./xValue";
+import { LexValue, Value } from "./xValue";
 import { ArgumentFrame } from "./wordArgument";
-import { testTable } from "./lexicon";
+import { SymbolTable, testTable } from "./lexicon";
 
-export { testText, multiTest, testPrint, customRule, testValue, testRun };
+export {
+  testText,
+  multiTest,
+  testPrint,
+  customRule,
+  testValue,
+  testRun,
+  testParagraph,
+};
 
 function captureOutput<T>(results: string[], fx: () => T): T {
   let oldConsole = console.log;
@@ -74,6 +82,10 @@ function testValue(value: Value<any>) {
 
 function testRun(value: Value<any>) {
   value.getValue()();
+}
+
+function testParagraph(value: (lookup: SymbolTable<any>) => void) {
+  value(testTable);
 }
 
 function customRule<T>(parser: Parser<TokenKind, T>) {

@@ -1,5 +1,6 @@
 import { Parser, rule, Token } from "typescript-parsec";
-import { LexValue, LitValue } from "./components/xValue";
+import { LexValue, LitValue, MergeValue, Value } from "./components/xValue";
+import { SymbolTable } from "./components/lexicon";
 
 export { parserRules, Argument, TokenKind, LexicalCategory };
 
@@ -14,7 +15,9 @@ enum TokenKind {
 }
 
 const parserRules = {
-  SENTENCE: rule<TokenKind, any>(),
+  PARAGRAPH: rule<TokenKind, (lookup: SymbolTable<any>) => void>(),
+  SENTENCE: rule<TokenKind, LexValue<any>>(),
+  REST: rule<TokenKind, string>(),
   WORD: rule<TokenKind, LexValue<any>>(),
   LITERAL: rule<TokenKind, LitValue<string | number>>(),
   STRING_LITERAL: rule<TokenKind, string>(),
@@ -29,4 +32,5 @@ enum LexicalCategory {
 
 enum Argument {
   Theme,
+  Destination,
 }

@@ -8,7 +8,8 @@ import {
 } from "typescript-parsec";
 import { parserRules, TokenKind } from "../header";
 import assert from "assert";
-import { LexValue, SymbolTable } from "./xValue";
+import { LexValue } from "./xValue";
+import { SymbolTable } from "./lexicon";
 
 export { evaluate, pattern, lexer };
 
@@ -44,16 +45,12 @@ function evaluate(
   debug?: boolean
 ): any {
   DEBUG = debug == undefined ? false : debug;
-  if (nodeType == parserRules.SENTENCE) {
-    assert(expr[expr.length - 1] == ".");
-    expr = expr.slice(0, expr.length - 1);
-  }
   // if (DEBUG) console.debug(lexer.parse(expr));
   const parseResult = expectSingleResult(
     expectEOF(nodeType.parse(lexer.parse(expr)))
   );
   if (nodeType == parserRules.SENTENCE) {
-    if (DEBUG) console.log(parseResult);
+    // if (DEBUG) console.log(parseResult);
     parseResult.attachTable(lookupTable);
   }
 

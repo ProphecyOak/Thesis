@@ -1,26 +1,29 @@
 import { Token } from "typescript-parsec";
+import { SymbolTable } from "./lexicon";
 
-export { Value, LitValue, LexValue, MergeValue, SymbolTable, MergeMode };
+export { Value, LitValue, LexValue, MergeValue, MergeMode };
 
-interface SymbolTable<T> {
-  words: Map<string, T>;
-  lookup(symbol: string): T;
-}
 interface Value<T> {
   attachTable(lookupTable: SymbolTable<any>): void;
   getValue(): () => T;
   getSymbol(): string;
   setParent(parent: MergeValue<any, any>): void;
+  setRest(rest: string): void;
+  getRest(): string;
 }
 
 class LitValue<T> implements Value<T> {
   private value: T;
   private parent?: MergeValue<any, any>;
+  private symbol?: string;
+  private restOfPhrase: string = "";
 
-  constructor(val: T) {
+  constructor(val: T, symbol?: string) {
     this.value = val;
+    this.symbol = symbol;
   }
   getSymbol(): string {
+    if (this.symbol != undefined) return this.symbol;
     if (typeof this.value == "string" || typeof this.value == "number")
       return this.value.toString();
     return "Complicated Type";
@@ -34,6 +37,13 @@ class LitValue<T> implements Value<T> {
 
   getValue(): () => T {
     return () => this.value;
+  }
+
+  setRest(rest: string) {
+    this.restOfPhrase = rest;
+  }
+  getRest(): string {
+    return "";
   }
 }
 
@@ -90,6 +100,7 @@ class MergeValue<T, S> implements Value<T> {
   private parent?: MergeValue<any, any>;
   private children = new Array<Value<any>>();
   private table?: SymbolTable<any>;
+  private restOfPhrase = "";
 
   constructor(mode: MergeMode, fx: Value<T>, arg?: any);
   constructor(mode: MergeMode, fx: Value<(input: S) => T>, arg: Value<S>);
@@ -103,10 +114,13 @@ class MergeValue<T, S> implements Value<T> {
         this.fx = fx;
         this.fx.setParent(this);
         this.children.push(this.fx);
+        const argRestLength = this.arg?.getRest().length;
+        this.restOfPhrase = this.fx
+          .getRest()
+          .slice(argRestLength == undefined ? 0 : argRestLength);
         break;
       case MergeMode.Union:
         throw new Error("Union merge not implemented.");
-        break;
     }
     this.composeMode = mode;
   }
@@ -136,5 +150,12 @@ class MergeValue<T, S> implements Value<T> {
         break;
     }
     return this.value as () => T;
+  }
+
+  setRest(rest: string) {
+    this.restOfPhrase = rest;
+  }
+  getRest(): string {
+    return this.restOfPhrase;
   }
 }

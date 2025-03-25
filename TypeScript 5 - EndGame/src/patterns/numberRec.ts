@@ -35,7 +35,8 @@ pattern(
           ? "." +
             numberParts[1].map((token: Token<TokenKind.Numeric>) => token.text)
           : "";
-      if (secondPart == ".") return fail("Not actually a number");
+      if (secondPart == "." || firstPart + secondPart == "")
+        return fail("Not actually a number");
       let newNum = Number(firstPart + secondPart);
       return apply(nil(), () => newNum);
     }

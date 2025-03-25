@@ -2,6 +2,7 @@ import { alt_sc } from "typescript-parsec";
 import {
   customRule,
   multiTest,
+  testParagraph,
   testPrint,
   testRun,
   testText,
@@ -17,25 +18,20 @@ multiTest(
   new Map<string, string[]>([
     ["Say Stuff.", ["Say", "Stuff"]],
     ["Say 34.", ["Say", "34"]],
-    ["Say 'things'.", ["Say", "things"]],
+    ["Say 'things'.", ["Say", "'things'"]],
     ["Bark.", ["Bark", ""]],
     ["Report.", ["Report", ""]],
+    [
+      "Save 'Hello World!' as Greeting.",
+      ["Save", "'Hello World!' as Greeting"],
+    ],
   ]),
   parserRules.SENTENCE,
-  false,
+  true,
   (word: LexValue<any>) => {
     testPrint(word.getSymbol());
     testPrint(word.getRest());
   }
-);
-
-testText(
-  "Grab numeric theme",
-  "2",
-  customRule(alt_sc(parserRules.LITERAL, parserRules.WORD)),
-  [2],
-  false,
-  testValue
 );
 
 multiTest(
@@ -47,4 +43,13 @@ multiTest(
   parserRules.SENTENCE,
   false,
   testRun
+);
+
+testText(
+  "Paragraph",
+  "Say 2.\nSay 3.\nSay 4.",
+  parserRules.PARAGRAPH,
+  ["2", "3", "4"],
+  false,
+  testParagraph
 );

@@ -58,6 +58,7 @@ describe("Numbers", () => {
       [".2", [0.2]],
       ["1.", ["ERROR"]],
       [".", ["ERROR"]],
+      ["", ["ERROR"]],
     ]),
     parserRules.NUMERIC_LITERAL,
     false,

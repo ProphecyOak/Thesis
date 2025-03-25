@@ -1,20 +1,20 @@
-import { expectSingleResult, expectEOF } from "typescript-parsec";
+import { expectSingleResult, expectEOF, amb } from "typescript-parsec";
 import { Argument } from "../header";
 import { lexer } from "./parser";
 import { ArgumentFrame } from "./wordArgument";
-import {
-  LexValue,
-  LitValue,
-  MergeMode,
-  MergeValue,
-  SymbolTable,
-} from "./xValue";
+import { LexValue, LitValue, MergeMode, MergeValue, Value } from "./xValue";
 
-export { testTable };
+export { testTable, SymbolTable };
 
-type VerbMeaning = (value: LexValue<any>) => () => void;
-let testTable: SymbolTable<VerbMeaning> = {
-  words: new Map<string, VerbMeaning>([
+interface SymbolTable<T> {
+  words: Map<string, T>;
+  lookup(symbol: string): T;
+  add(destination: string, value: VariableMeaning): void;
+}
+
+type VariableMeaning = (value: LexValue<any>) => () => void | string | number;
+let testTable: SymbolTable<VariableMeaning> = {
+  words: new Map<string, VariableMeaning>([
     [
       "Bark",
       (_value: LexValue<any>) => {
@@ -31,21 +31,71 @@ let testTable: SymbolTable<VerbMeaning> = {
       "Say",
       (value: LexValue<any>) => {
         return () => {
-          let themeFrame = ArgumentFrame.getFrame(
+          const themeGrabbed = grabArgument(
+            value,
             Argument.Theme,
-            new LitValue((theme: string | number) =>
-              console.log(theme.toString())
+            new LitValue(
+              (theme: string | number) => console.log(theme.toString()),
+              "Say"
             ),
             testTable
           );
-          expectSingleResult(
-            expectEOF(themeFrame.parse(lexer.parse(value.getRest())))
-          ).getValue()();
+          themeGrabbed.getValue()();
+        };
+      },
+    ],
+    ["testVARIABLE", (value: LexValue<any>) => () => 2],
+    [
+      "Save",
+      (value: LexValue<any>) => {
+        return () => {
+          const themeGrabbed = grabArgument(
+            value,
+            Argument.Theme,
+            new LitValue((theme: string | number) => {
+              const destinationGrabbed = grabArgument(
+                themeGrabbed,
+                Argument.Destination,
+                new LitValue((destination: LexValue<any>) => {
+                  testTable.add(
+                    destination.getSymbol(),
+                    (val: LexValue<any>) => () => theme
+                  );
+                }, "At"),
+                testTable
+              );
+              destinationGrabbed.getValue()();
+            }, "Save"),
+            testTable
+          );
+          themeGrabbed.getValue()();
         };
       },
     ],
   ]),
-  lookup(symbol: string): VerbMeaning {
+  lookup(symbol: string): VariableMeaning {
     return this.words.get(symbol)!;
   },
+  add(destination: string, value: VariableMeaning) {
+    // console.debug(`Adding ${destination} with meaning: ${value}`);
+    this.words.set(destination, value);
+  },
 };
+
+function grabArgument(
+  root: Value<any>,
+  argType: Argument,
+  value: LitValue<any>,
+  lookupTable: SymbolTable<any>
+): MergeValue<any, any> {
+  const frame = ArgumentFrame.getFrame(argType, value, lookupTable);
+  try {
+    return expectSingleResult(
+      expectEOF(frame.parse(lexer.parse(root.getRest())))
+    );
+  } catch (e) {
+    throw new Error(
+      `Grabbing argument of type ${Argument[argType]} for ${root.getSymbol()} with rest: {${root.getRest()}}\nError: ${e}`
+    );
+  }
+}
