@@ -1,79 +1,69 @@
-import { expectSingleResult, expectEOF, amb } from "typescript-parsec";
-import { Argument } from "../header";
-import { lexer } from "./parser";
-import { ArgumentFrame } from "./wordArgument";
-import { LexValue, LitValue, MergeMode, MergeValue, Value } from "./xValue";
+import { Argument, SymbolTable, VariableMeaning } from "../header";
+import { XBar } from "./wordArgument";
+import { LexValue, LitValue } from "./xValue";
 
 export { testTable, SymbolTable };
 
-interface SymbolTable<T> {
-  words: Map<string, T>;
-  lookup(symbol: string): T;
-  add(destination: string, value: VariableMeaning): void;
-}
-
-type VariableMeaning = (value: LexValue<any>) => () => void | string | number;
 let testTable: SymbolTable<VariableMeaning> = {
   words: new Map<string, VariableMeaning>([
+    // [
+    //   "Bark",
+    //   (_value: LexValue<any>) => {
+    //     return () => console.log("Woof");
+    //   },
+    // ],
+    // [
+    //   "Report",
+    //   (_value: LexValue<any>) => {
+    //     return () => console.log("Breaking News: This might actually work!");
+    //   },
+    // ],
     [
       "Bark",
-      (_value: LexValue<any>) => {
-        return () => console.log("Woof");
-      },
-    ],
-    [
-      "Report",
-      (_value: LexValue<any>) => {
-        return () => console.log("Breaking News: This might actually work!");
-      },
+      (rest: string) =>
+        new XBar(
+          new LitValue(() => console.log("Woof")).setRest(rest),
+          testTable
+        ),
     ],
     [
       "Say",
-      (value: LexValue<any>) => {
-        return () => {
-          const themeGrabbed = grabArgument(
-            value,
-            Argument.Theme,
-            new LitValue(
-              (theme: string | number) => console.log(theme.toString()),
-              "Say"
-            ),
-            testTable
-          );
-          themeGrabbed.getValue()();
-        };
-      },
+      () =>
+        new XBar(
+          new LitValue((theme: string | number) => console.log(theme)),
+          testTable
+        ).acceptArgument(Argument.Theme, "Say"),
     ],
-    ["testVARIABLE", (value: LexValue<any>) => () => 2],
-    [
-      "Save",
-      (value: LexValue<any>) => {
-        return () => {
-          const themeGrabbed = grabArgument(
-            value,
-            Argument.Theme,
-            new LitValue((theme: string | number) => {
-              const destinationGrabbed = grabArgument(
-                themeGrabbed,
-                Argument.Destination,
-                new LitValue((destination: LexValue<any>) => {
-                  testTable.add(
-                    destination.getSymbol(),
-                    (val: LexValue<any>) => () => theme
-                  );
-                }, "At"),
-                testTable
-              );
-              destinationGrabbed.getValue()();
-            }, "Save"),
-            testTable
-          );
-          themeGrabbed.getValue()();
-        };
-      },
-    ],
+    ["testVARIABLE", () => 2],
+    // [
+    //   "Save",
+    //   (value: LexValue<any>) => {
+    //     return () => {
+    //       new XBar(value, testTable)
+    //         .acceptArgument(
+    //           Argument.Theme,
+    //           new LitValue<any>((theme: string | number) =>
+    //             console.log(theme.toString())
+    //           )
+    //         )
+    //         .acceptArgument(
+    //           Argument.Destination,
+    //           new LitValue<any>((destination: LexValue<any>) => {
+    //             testTable.add(
+    //               destination.getSymbol(),
+    //               (val: LexValue<any>) => () => theme
+    //             );
+    //           }, "At")
+    //         )
+    //         .run();
+    //     };
+    //   },
+    // ],
   ]),
   lookup(symbol: string): VariableMeaning {
+    if (this.words.get(symbol) == undefined) {
+      throw new Error(`'${symbol}' is not defined in the lexicon.`);
+    }
     return this.words.get(symbol)!;
   },
   add(destination: string, value: VariableMeaning) {
@@ -82,36 +72,20 @@ let testTable: SymbolTable<VariableMeaning> = {
   },
 };
 
-function grabArgument(
-  root: Value<any>,
-  argType: Argument,
-  value: LitValue<any>,
-  lookupTable: SymbolTable<any>
-): MergeValue<any, any> {
-  const frame = ArgumentFrame.getFrame(argType, value, lookupTable);
-  try {
-    return expectSingleResult(
-      expectEOF(frame.parse(lexer.parse(root.getRest())))
-    );
-  } catch (e) {
-    throw new Error(
-      `Grabbing argument of type ${Argument[argType]} for ${root.getSymbol()} with rest: {${root.getRest()}}\nError: ${e}`
-    );
-  }
-}
-
-// function _grabArgument(
+// function grabArgument(
+//   root: Value<any>,
 //   argType: Argument,
-//   table: SymbolTable<any>,
-//   vBar: Value<any>
+//   value: LitValue<any>,
+//   lookupTable: SymbolTable<any>
 // ): MergeValue<any, any> {
-//   return null as unknown as MergeValue<any, any>;
-// }
-
-// class Sentence {
-//   verb: LexValue<any>;
-//   constructor(verb: LexValue<any>) {
-//     this.verb = verb;
+//   const frame = ArgumentFrame.getFrame(argType, value, lookupTable);
+//   try {
+//     return expectSingleResult(
+//       expectEOF(frame.parse(lexer.parse(root.getRest())))
+//     );
+//   } catch (e) {
+//     throw new Error(
+//       `Grabbing argument of type ${Argument[argType]} for ${root.getSymbol()} with rest: {${root.getRest()}}\nError: ${e}`
+//     );
 //   }
-//   useArgument(argType: Argument) {}
 // }

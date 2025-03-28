@@ -1,15 +1,12 @@
-import { alt_sc } from "typescript-parsec";
+import { testTable } from "../components/lexicon";
 import {
-  customRule,
   multiTest,
   testParagraph,
   testPrint,
   testRun,
   testText,
-  testValue,
 } from "../components/tester";
-import { LexValue, Value } from "../components/xValue";
-import { parserRules } from "../header";
+import { parserRules, XBarInterface } from "../header";
 
 multiTest(
   "Verb grabbing",
@@ -27,10 +24,11 @@ multiTest(
     ],
   ]),
   parserRules.SENTENCE,
-  true,
-  (word: LexValue<any>) => {
-    testPrint(word.getSymbol());
-    testPrint(word.getRest());
+  false,
+  (word: XBarInterface) => {
+    word.assignLookup(testTable);
+    testPrint(word.root.getSymbol());
+    testPrint(word.root.getRest());
   }
 );
 
@@ -41,7 +39,7 @@ multiTest(
     ["Say 2.", ["2"]],
   ]),
   parserRules.SENTENCE,
-  false,
+  true,
   testRun
 );
 

@@ -39,8 +39,9 @@ class LitValue<T> implements Value<T> {
     return () => this.value;
   }
 
-  setRest(rest: string) {
+  setRest(rest: string): LitValue<T> {
     this.restOfPhrase = rest;
+    return this;
   }
   getRest(): string {
     return "";

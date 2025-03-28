@@ -1,17 +1,8 @@
-import {
-  alt_sc,
-  apply,
-  kleft,
-  rep,
-  rep_sc,
-  seq,
-  str,
-  tok,
-  Token,
-} from "typescript-parsec";
+import { alt_sc, apply, rep_sc, seq, tok, Token } from "typescript-parsec";
 import { pattern } from "../components/parser";
 import { parserRules, TokenKind } from "../header";
 import { LexValue } from "../components/xValue";
+import { XBar } from "../components/wordArgument";
 
 pattern(
   parserRules.SENTENCE,
@@ -22,7 +13,7 @@ pattern(
       const restOfSentence =
         rest[lastIndex] == "." ? rest.slice(0, lastIndex) : rest;
       verb.setRest(restOfSentence);
-      return verb;
+      return new XBar(verb);
     }
   )
 );

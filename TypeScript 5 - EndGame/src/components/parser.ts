@@ -6,28 +6,15 @@ import {
   Parser,
   Rule,
 } from "typescript-parsec";
-import { parserRules, TokenKind } from "../header";
-import assert from "assert";
-import { LexValue } from "./xValue";
-import { SymbolTable } from "./lexicon";
+import { lexer, parserRules, SymbolTable, TokenKind } from "../header";
 
-export { evaluate, pattern, lexer };
-
-const lexer = buildLexer([
-  [true, /^[0-9]+/g, TokenKind.Numeric],
-  [true, /^[a-zA-Z]+/g, TokenKind.Alpha],
-  [true, /^ /g, TokenKind.Space],
-  [true, /^\n/g, TokenKind.NewLine],
-  [true, /^['"]/g, TokenKind.Quote],
-  [true, /^\\/g, TokenKind.BackSlash],
-  [true, /^./g, TokenKind.Other],
-]);
+export { evaluate, pattern };
 
 let DEBUG: boolean = false;
 
 function pattern<T>(
   parser: Rule<TokenKind, T>,
-  pattern: Parser<TokenKind, any>,
+  pattern: Parser<TokenKind, T>,
   debugFx?: (node: T) => string
 ) {
   parser.setPattern(
@@ -49,10 +36,6 @@ function evaluate(
   const parseResult = expectSingleResult(
     expectEOF(nodeType.parse(lexer.parse(expr)))
   );
-  if (nodeType == parserRules.SENTENCE) {
-    // if (DEBUG) console.log(parseResult);
-    parseResult.attachTable(lookupTable);
-  }
 
   return parseResult;
 }

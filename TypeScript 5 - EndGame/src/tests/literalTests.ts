@@ -7,7 +7,6 @@ import {
   testValue,
 } from "../components/tester";
 import { parserRules, TokenKind } from "../header";
-import { LitValue, Value } from "../components/xValue";
 
 describe("Strings", () => {
   multiTest(
