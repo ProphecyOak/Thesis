@@ -1,6 +1,5 @@
 import { buildLexer, rule } from "typescript-parsec";
 import { LexValue, LitValue, Value } from "./components/xValue";
-import { XBar } from "./components/wordArgument";
 
 export {
   parserRules,
@@ -41,10 +40,10 @@ enum Argument {
 interface XBarInterface {
   root: Value<any>;
   lookup?: SymbolTable<VariableMeaning>;
-  childPhrase: XBar | null;
-  adjunct: XBar | null;
+  childPhrase: XBarInterface | null;
+  adjunct: XBarInterface | null;
   label: string;
-  assignLookup(lookup: SymbolTable<VariableMeaning>): void;
+  assignLookup(lookup: SymbolTable<VariableMeaning>): XBarInterface;
   acceptArgument(argType: Argument, symbol: string): void;
   run(): void;
   toString(): string;
@@ -66,9 +65,9 @@ enum LexicalCategory {
   Variable,
 }
 
-type VariableMeaning =
-  | (() => void | string | number)
-  | ((rest: string) => XBar);
+type VariableMeaning = (
+  value: Value<any>
+) => () => XBarInterface | void | string | number;
 
 interface SymbolTable<T> {
   words: Map<string, T>;

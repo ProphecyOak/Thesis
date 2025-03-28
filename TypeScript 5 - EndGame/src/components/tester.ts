@@ -74,7 +74,7 @@ function testValue(value: Value<any>) {
 
 function testRun(value: XBarInterface) {
   value.assignLookup(testTable);
-  value.run();
+  value.root.getValue()().assignLookup(testTable).run();
 }
 
 function testParagraph(value: (lookup: SymbolTable<any>) => void) {

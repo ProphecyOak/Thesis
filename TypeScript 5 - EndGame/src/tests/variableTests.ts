@@ -1,11 +1,4 @@
-import { SymbolTable, testTable } from "../components/lexicon";
-import {
-  multiTest,
-  testParagraph,
-  testRun,
-  testText,
-} from "../components/tester";
-import { LexValue } from "../components/xValue";
+import { multiTest, testParagraph } from "../components/tester";
 import { parserRules } from "../header";
 
 multiTest(
@@ -22,21 +15,3 @@ multiTest(
   false,
   testParagraph
 );
-
-// testText(
-//   "Saving Variables",
-//   "Save 3 as testVariable.",
-//   parserRules.PARAGRAPH,
-//   ["3"],
-//   false,
-//   (result: (lookup: SymbolTable<any>) => void) => {
-//     result(testTable);
-//     console.log(
-//       (
-//         testTable.lookup("testVariable")(
-//           null as unknown as LexValue<any>
-//         )() as number
-//       ).toString()
-//     );
-//   }
-// );

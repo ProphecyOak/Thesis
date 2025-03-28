@@ -1,40 +1,33 @@
 import { Argument, SymbolTable, VariableMeaning } from "../header";
 import { XBar } from "./wordArgument";
-import { LexValue, LitValue } from "./xValue";
+import { LexValue, LitValue, Value } from "./xValue";
 
 export { testTable, SymbolTable };
 
 let testTable: SymbolTable<VariableMeaning> = {
   words: new Map<string, VariableMeaning>([
-    // [
-    //   "Bark",
-    //   (_value: LexValue<any>) => {
-    //     return () => console.log("Woof");
-    //   },
-    // ],
-    // [
-    //   "Report",
-    //   (_value: LexValue<any>) => {
-    //     return () => console.log("Breaking News: This might actually work!");
-    //   },
-    // ],
     [
       "Bark",
-      (rest: string) =>
+      (value: Value<any>) => () =>
         new XBar(
-          new LitValue(() => console.log("Woof")).setRest(rest),
+          new LitValue(() => console.log("Woof"), "BarkMeaning").setRest(
+            value.getRest()
+          ),
           testTable
         ),
     ],
     [
       "Say",
-      () =>
+      (value: Value<any>) => () =>
         new XBar(
-          new LitValue((theme: string | number) => console.log(theme)),
+          new LitValue(
+            () => (theme: string | number) => console.log(theme),
+            "SayMeaning"
+          ).setRest(value.getRest()),
           testTable
-        ).acceptArgument(Argument.Theme, "Say"),
+        ).acceptArgument(Argument.Theme),
     ],
-    ["testVARIABLE", () => 2],
+    ["testVARIABLE", (value: Value<any>) => () => 2],
     // [
     //   "Save",
     //   (value: LexValue<any>) => {

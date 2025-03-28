@@ -5,6 +5,7 @@ export { Value, LitValue, LexValue, MergeValue, MergeMode };
 
 interface Value<T> {
   attachTable(lookupTable: SymbolTable<any>): void;
+  valueType(): string;
   getValue(): () => T;
   getSymbol(): string;
   setParent(parent: MergeValue<any, any>): void;
@@ -13,20 +14,23 @@ interface Value<T> {
 }
 
 class LitValue<T> implements Value<T> {
-  private value: T;
+  private value: () => T;
   private parent?: MergeValue<any, any>;
   private symbol?: string;
   private restOfPhrase: string = "";
 
-  constructor(val: T, symbol?: string) {
+  constructor(val: () => T, symbol?: string) {
     this.value = val;
     this.symbol = symbol;
   }
+
+  valueType(): string {
+    return "LitValue";
+  }
+
   getSymbol(): string {
     if (this.symbol != undefined) return this.symbol;
-    if (typeof this.value == "string" || typeof this.value == "number")
-      return this.value.toString();
-    return "Complicated Type";
+    return "Undefined Literal Symbol";
   }
 
   setParent(parent: MergeValue<any, any>) {
@@ -36,7 +40,7 @@ class LitValue<T> implements Value<T> {
   attachTable(lookupTable: SymbolTable<any>) {}
 
   getValue(): () => T {
-    return () => this.value;
+    return this.value;
   }
 
   setRest(rest: string): LitValue<T> {
@@ -57,6 +61,10 @@ class LexValue<T> implements Value<T> {
 
   constructor(symbol: string) {
     this.symbol = symbol;
+  }
+
+  valueType(): string {
+    return "LexValue";
   }
 
   getSymbol(): string {
@@ -81,7 +89,9 @@ class LexValue<T> implements Value<T> {
 
   getValue(): () => T {
     if (this.table == undefined)
-      throw new Error(`No lookup table attached for ${this.getSymbol()}`);
+      throw new Error(`No lookup table attached for {${this.getSymbol()}}`);
+    if (!this.table.words.has(this.symbol))
+      throw new Error(`No entry in lookup for ${this.symbol}`);
     this.value = this.table.lookup(this.symbol)(this);
     return this.value as () => T;
   }
@@ -125,6 +135,11 @@ class MergeValue<T, S> implements Value<T> {
     }
     this.composeMode = mode;
   }
+
+  valueType(): string {
+    return "MergeValue";
+  }
+
   getSymbol(): string {
     return `${this.fx.getSymbol()}(${this.arg?.getSymbol()})`;
   }
