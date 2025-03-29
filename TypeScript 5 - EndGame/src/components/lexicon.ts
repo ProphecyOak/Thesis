@@ -1,8 +1,8 @@
-import { expectSingleResult, expectEOF, amb } from "typescript-parsec";
+import { expectSingleResult, expectEOF } from "typescript-parsec";
 import { Argument } from "../header";
 import { lexer } from "./parser";
 import { ArgumentFrame } from "./wordArgument";
-import { LexValue, LitValue, MergeMode, MergeValue, Value } from "./xValue";
+import { LexValue, LitValue, MergeValue, Value } from "./xValue";
 
 export { testTable, SymbolTable };
 

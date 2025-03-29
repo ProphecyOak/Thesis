@@ -1,5 +1,5 @@
-import { Parser, rule, Token } from "typescript-parsec";
-import { LexValue, LitValue, MergeValue, Value } from "./components/xValue";
+import { rule } from "typescript-parsec";
+import { LexValue, LitValue } from "./components/xValue";
 import { SymbolTable } from "./components/lexicon";
 
 export { parserRules, Argument, TokenKind, LexicalCategory };

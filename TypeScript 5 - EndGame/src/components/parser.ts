@@ -7,8 +7,6 @@ import {
   Rule,
 } from "typescript-parsec";
 import { parserRules, TokenKind } from "../header";
-import assert from "assert";
-import { LexValue } from "./xValue";
 import { SymbolTable } from "./lexicon";
 
 export { evaluate, pattern, lexer };

@@ -1,16 +1,8 @@
-import {
-  expectEOF,
-  expectSingleResult,
-  Parser,
-  rule,
-  Rule,
-  Token,
-} from "typescript-parsec";
-import { evaluate, lexer } from "./parser";
+import { Parser, rule, Rule } from "typescript-parsec";
+import { evaluate } from "./parser";
 import "../patterns/patternSetter";
-import { Argument, TokenKind } from "../header";
-import { LexValue, Value } from "./xValue";
-import { ArgumentFrame } from "./wordArgument";
+import { TokenKind } from "../header";
+import { Value } from "./xValue";
 import { SymbolTable, testTable } from "./lexicon";
 
 export {

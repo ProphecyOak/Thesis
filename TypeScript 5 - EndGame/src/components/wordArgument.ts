@@ -1,18 +1,6 @@
-import {
-  alt,
-  alt_sc,
-  apply,
-  kleft,
-  kright,
-  nil,
-  opt_sc,
-  Parser,
-  seq,
-  str,
-  tok,
-} from "typescript-parsec";
+import { alt_sc, apply, kright, Parser, seq, str } from "typescript-parsec";
 import { Argument, parserRules, TokenKind } from "../header";
-import { LexValue, LitValue, MergeMode, MergeValue, Value } from "./xValue";
+import { LitValue, MergeMode, MergeValue, Value } from "./xValue";
 import { SymbolTable } from "./lexicon";
 
 export { ArgumentFrame };

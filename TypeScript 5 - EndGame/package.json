@@ -19,6 +19,8 @@
     "typescript-parsec": "^0.3.4"
   },
   "jest": {
-    "testMatch": ["**/tests/**/*.js"]
+    "testMatch": [
+      "**/tests/**/*.js"
+    ]
   }
 }

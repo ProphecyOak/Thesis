@@ -1,14 +1,4 @@
-import {
-  alt_sc,
-  apply,
-  kleft,
-  rep,
-  rep_sc,
-  seq,
-  str,
-  tok,
-  Token,
-} from "typescript-parsec";
+import { alt_sc, apply, rep_sc, seq, tok, Token } from "typescript-parsec";
 import { pattern } from "../components/parser";
 import { parserRules, TokenKind } from "../header";
 import { LexValue } from "../components/xValue";

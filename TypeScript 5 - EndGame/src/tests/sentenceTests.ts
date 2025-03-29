@@ -1,14 +1,11 @@
-import { alt_sc } from "typescript-parsec";
 import {
-  customRule,
   multiTest,
   testParagraph,
   testPrint,
   testRun,
   testText,
-  testValue,
 } from "../components/tester";
-import { LexValue, Value } from "../components/xValue";
+import { LexValue } from "../components/xValue";
 import { parserRules } from "../header";
 
 multiTest(

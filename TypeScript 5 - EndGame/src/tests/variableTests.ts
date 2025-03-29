@@ -1,10 +1,5 @@
 import { SymbolTable, testTable } from "../components/lexicon";
-import {
-  multiTest,
-  testParagraph,
-  testRun,
-  testText,
-} from "../components/tester";
+import { multiTest, testParagraph, testText } from "../components/tester";
 import { LexValue } from "../components/xValue";
 import { parserRules } from "../header";
 
