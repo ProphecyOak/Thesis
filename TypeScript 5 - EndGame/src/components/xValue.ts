@@ -1,4 +1,3 @@
-import { Token } from "typescript-parsec";
 import { SymbolTable } from "./lexicon";
 
 export { Value, LitValue, LexValue, MergeValue, MergeMode };
@@ -8,14 +7,12 @@ interface Value<T> {
   valueType(): string;
   getValue(): () => T;
   getSymbol(): string;
-  setParent(parent: MergeValue<any, any>): void;
   setRest(rest: string): void;
   getRest(): string;
 }
 
 class LitValue<T> implements Value<T> {
   private value: () => T;
-  private parent?: MergeValue<any, any>;
   private symbol?: string;
   private restOfPhrase: string = "";
 
@@ -33,10 +30,6 @@ class LitValue<T> implements Value<T> {
     return "Undefined Literal Symbol";
   }
 
-  setParent(parent: MergeValue<any, any>) {
-    this.parent = parent;
-  }
-
   attachTable(lookupTable: SymbolTable<any>) {}
 
   getValue(): () => T {
@@ -48,7 +41,7 @@ class LitValue<T> implements Value<T> {
     return this;
   }
   getRest(): string {
-    return "";
+    return this.restOfPhrase;
   }
 }
 
@@ -56,7 +49,6 @@ class LexValue<T> implements Value<T> {
   private symbol: string;
   private value?: () => T;
   private restOfPhrase = "";
-  private parent?: MergeValue<any, any>;
   private table?: SymbolTable<any>;
 
   constructor(symbol: string) {
@@ -69,10 +61,6 @@ class LexValue<T> implements Value<T> {
 
   getSymbol(): string {
     return this.symbol;
-  }
-
-  setParent(parent: MergeValue<any, any>) {
-    this.parent = parent;
   }
 
   setRest(rest: string) {
@@ -108,7 +96,6 @@ class MergeValue<T, S> implements Value<T> {
   private fx: Value<T> | Value<(input: S) => T>;
   private arg?: Value<S>;
   private composeMode: MergeMode;
-  private parent?: MergeValue<any, any>;
   private children = new Array<Value<any>>();
   private table?: SymbolTable<any>;
   private restOfPhrase = "";
@@ -119,11 +106,9 @@ class MergeValue<T, S> implements Value<T> {
     switch (mode) {
       case MergeMode.Composing:
         this.arg = arg;
-        this.arg.setParent(this);
         this.children.push(this.arg);
       case MergeMode.NonBranching:
         this.fx = fx;
-        this.fx.setParent(this);
         this.children.push(this.fx);
         const argRestLength = this.arg?.getRest().length;
         this.restOfPhrase = this.fx
@@ -142,10 +127,6 @@ class MergeValue<T, S> implements Value<T> {
 
   getSymbol(): string {
     return `${this.fx.getSymbol()}(${this.arg?.getSymbol()})`;
-  }
-
-  setParent(parent: MergeValue<any, any>) {
-    this.parent = parent;
   }
 
   attachTable(lookupTable: SymbolTable<any>): void {

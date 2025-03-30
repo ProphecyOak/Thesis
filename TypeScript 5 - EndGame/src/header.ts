@@ -44,7 +44,7 @@ interface XBarInterface {
   adjunct: XBarInterface | null;
   label: string;
   assignLookup(lookup: SymbolTable<VariableMeaning>): XBarInterface;
-  acceptArgument(argType: Argument, symbol: string): void;
+  acceptArgument(argType: Argument): void;
   run(): void;
   toString(): string;
 }

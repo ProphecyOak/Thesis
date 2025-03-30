@@ -1,12 +1,11 @@
 import {
   apply,
-  buildLexer,
   expectEOF,
   expectSingleResult,
   Parser,
   Rule,
 } from "typescript-parsec";
-import { lexer, parserRules, SymbolTable, TokenKind } from "../header";
+import { lexer, SymbolTable, TokenKind } from "../header";
 
 export { evaluate, pattern };
 

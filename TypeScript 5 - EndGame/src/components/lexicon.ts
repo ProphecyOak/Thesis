@@ -1,6 +1,6 @@
 import { Argument, SymbolTable, VariableMeaning } from "../header";
 import { XBar } from "./wordArgument";
-import { LexValue, LitValue, Value } from "./xValue";
+import { LitValue, Value } from "./xValue";
 
 export { testTable, SymbolTable };
 
@@ -21,37 +21,26 @@ let testTable: SymbolTable<VariableMeaning> = {
       (value: Value<any>) => () =>
         new XBar(
           new LitValue(
-            () => (theme: string | number) => console.log(theme),
+            () => (theme: string | number) => console.log(theme.toString()),
             "SayMeaning"
           ).setRest(value.getRest()),
           testTable
         ).acceptArgument(Argument.Theme),
     ],
     ["testVARIABLE", (value: Value<any>) => () => 2],
-    // [
-    //   "Save",
-    //   (value: LexValue<any>) => {
-    //     return () => {
-    //       new XBar(value, testTable)
-    //         .acceptArgument(
-    //           Argument.Theme,
-    //           new LitValue<any>((theme: string | number) =>
-    //             console.log(theme.toString())
-    //           )
-    //         )
-    //         .acceptArgument(
-    //           Argument.Destination,
-    //           new LitValue<any>((destination: LexValue<any>) => {
-    //             testTable.add(
-    //               destination.getSymbol(),
-    //               (val: LexValue<any>) => () => theme
-    //             );
-    //           }, "At")
-    //         )
-    //         .run();
-    //     };
-    //   },
-    // ],
+    [
+      "Save",
+      (value: Value<any>) => () =>
+        new XBar(
+          new LitValue(
+            () => (theme: string | number) => (destination: string) =>
+              testTable.add(destination, (val: Value<any>) => () => theme),
+            "SaveMeaning"
+          ),
+          testTable
+        ).acceptArgument(Argument.Theme),
+      // .acceptArgument(Argument.Destination),
+    ],
   ]),
   lookup(symbol: string): VariableMeaning {
     if (this.words.get(symbol) == undefined) {
@@ -64,21 +53,3 @@ let testTable: SymbolTable<VariableMeaning> = {
     this.words.set(destination, value);
   },
 };
-
-// function grabArgument(
-//   root: Value<any>,
-//   argType: Argument,
-//   value: LitValue<any>,
-//   lookupTable: SymbolTable<any>
-// ): MergeValue<any, any> {
-//   const frame = ArgumentFrame.getFrame(argType, value, lookupTable);
-//   try {
-//     return expectSingleResult(
-//       expectEOF(frame.parse(lexer.parse(root.getRest())))
-//     );
-//   } catch (e) {
-//     throw new Error(
-//       `Grabbing argument of type ${Argument[argType]} for ${root.getSymbol()} with rest: {${root.getRest()}}\nError: ${e}`
-//     );
-//   }
-// }

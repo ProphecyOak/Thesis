@@ -38,7 +38,7 @@ multiTest(
     ["Say 2.", ["2"]],
   ]),
   parserRules.SENTENCE,
-  true,
+  false,
   testRun
 );
 
