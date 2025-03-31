@@ -51,14 +51,14 @@ function testText<T>(
 
 function multiTest<T>(
   name: string,
-  tests: Map<string, (string | number)[]>,
+  tests: [string, (string | number)[]][],
   nodeType: Rule<any, T>,
   DEBUG = false,
   testFx?: (node: T) => void
 ) {
   describe(name, () => {
     let i = 1;
-    tests.forEach((expected: (string | number)[], prgm: string) => {
+    tests.forEach(([prgm, expected]: [string, (string | number)[]]) => {
       testText(`Test ${i}`, prgm, nodeType, expected, DEBUG, testFx);
       i++;
     });

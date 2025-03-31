@@ -49,16 +49,16 @@ class XBar implements XBarInterface {
     // Get frame for argumentType
     const frame = frames.get(argType)!(this.lookup);
     // Parse frame for new merged value
+
+    const currentRest: string =
+      this.adjunct != undefined
+        ? this.adjunct?.root.getRest()
+        : this.childPhrase != undefined
+          ? this.childPhrase?.root.getRest()
+          : this.root.getRest();
+
     let arg: Value<any>;
-    try {
-      arg = expectSingleResult(
-        expectEOF(frame.parse(lexer.parse(this.root.getRest())))
-      );
-    } catch (e) {
-      throw new Error(
-        `{${this.childPhrase?.root.getRest()}}, {${this.adjunct?.root.getRest()}}, {${this.root.getRest()}}, ${e}`
-      );
-    }
+    arg = expectSingleResult(expectEOF(frame.parse(lexer.parse(currentRest))));
     arg.attachTable(this.lookup);
     const mergedArg = new MergeValue(MergeMode.Composing, arg, this.root);
     mergedArg.attachTable(this.lookup);

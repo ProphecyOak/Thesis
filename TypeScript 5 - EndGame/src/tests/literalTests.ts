@@ -11,19 +11,19 @@ import { parserRules, TokenKind } from "../header";
 describe("Strings", () => {
   multiTest(
     "String Characters",
-    new Map<string, (string | number)[]>([
+    [
       ["a", ["a"]],
       ["Z", ["Z"]],
       ["1", ["1"]],
       [" ", [" "]],
-    ]),
+    ],
     parserRules.STRING_CHARACTER,
     false,
     testPrint
   );
   multiTest(
     "Quote parity",
-    new Map<string, string[]>([
+    [
       ["'Hello World'", ["Hello World"]],
       ["'Hello\"World'", ['Hello"World']],
       ['"Hello\'World"', ["Hello'World"]],
@@ -31,7 +31,7 @@ describe("Strings", () => {
       ["\"1343 afsdf'", ["ERROR"]],
       ['"1343\\" afsdf"', ['1343" afsdf']],
       ['"1343\\" \\\'afsdf"', ["1343\" 'afsdf"]],
-    ]),
+    ],
     parserRules.STRING_LITERAL,
     false,
     testPrint
@@ -49,7 +49,7 @@ describe("Numbers", () => {
   );
   multiTest(
     "Number literals",
-    new Map<string, (string | number)[]>([
+    [
       ["23", [23]],
       ["2", [2]],
       ["45.2", [45.2]],
@@ -58,7 +58,7 @@ describe("Numbers", () => {
       ["1.", ["ERROR"]],
       [".", ["ERROR"]],
       ["", ["ERROR"]],
-    ]),
+    ],
     parserRules.NUMERIC_LITERAL,
     false,
     testPrint
@@ -67,14 +67,14 @@ describe("Numbers", () => {
 
 multiTest(
   "All kinds of Literals",
-  new Map<string, (string | number)[]>([
+  [
     ["23", [23]],
     ["'45.2'", ["45.2"]],
     ["4.5.2", ["ERROR"]],
     ["'things and stuff'", ["things and stuff"]],
     ["1.", ["ERROR"]],
     ["'\\\\'", ["\\"]],
-  ]),
+  ],
   parserRules.LITERAL,
   false,
   testValue

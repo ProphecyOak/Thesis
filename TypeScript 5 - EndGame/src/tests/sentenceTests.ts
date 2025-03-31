@@ -12,7 +12,7 @@ multiTest(
   "Verb grabbing",
   // The verbs here actually need to be in the lookup table
   // Or it will throw an error.
-  new Map<string, string[]>([
+  [
     ["Say Stuff.", ["Say", "Stuff"]],
     ["Say 34.", ["Say", "34"]],
     ["Say 'things'.", ["Say", "'things'"]],
@@ -21,7 +21,7 @@ multiTest(
       "Save 'Hello World!' as Greeting.",
       ["Save", "'Hello World!' as Greeting"],
     ],
-  ]),
+  ],
   parserRules.SENTENCE,
   false,
   (word: XBarInterface) => {
@@ -33,10 +33,10 @@ multiTest(
 
 multiTest(
   "Basic Verbs",
-  new Map<string, string[]>([
+  [
     ["Bark.", ["Woof"]],
     ["Say 2.", ["2"]],
-  ]),
+  ],
   parserRules.SENTENCE,
   false,
   testRun

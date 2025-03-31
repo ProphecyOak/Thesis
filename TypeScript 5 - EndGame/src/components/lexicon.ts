@@ -36,10 +36,11 @@ let testTable: SymbolTable<VariableMeaning> = {
             () => (theme: string | number) => (destination: string) =>
               testTable.add(destination, (val: Value<any>) => () => theme),
             "SaveMeaning"
-          ),
+          ).setRest(value.getRest()),
           testTable
-        ).acceptArgument(Argument.Theme),
-      // .acceptArgument(Argument.Destination),
+        )
+          .acceptArgument(Argument.Theme)
+          .acceptArgument(Argument.Destination),
     ],
   ]),
   lookup(symbol: string): VariableMeaning {
@@ -49,7 +50,6 @@ let testTable: SymbolTable<VariableMeaning> = {
     return this.words.get(symbol)!;
   },
   add(destination: string, value: VariableMeaning) {
-    // console.debug(`Adding ${destination} with meaning: ${value}`);
     this.words.set(destination, value);
   },
 };
