@@ -8,7 +8,7 @@ import {
   seq,
   str,
 } from "typescript-parsec";
-import { MergeMode, MergeValue, Value } from "./xValue";
+import { LitValue, MergeMode, MergeValue, Value } from "./xValue";
 import {
   Argument,
   TokenKind,
@@ -99,5 +99,13 @@ const frames = new Map<
   (lookup: SymbolTable<VariableMeaning>) => Parser<TokenKind, Value<any>>
 >([
   [Argument.Theme, createFrame(alt_sc(parserRules.LITERAL, parserRules.WORD))],
-  [Argument.Destination, createFrame(kright(str("as"), parserRules.WORD))],
+  [
+    Argument.Destination,
+    createFrame(
+      apply(
+        kright(str("as"), parserRules.WORD),
+        (val: Value<any>) => new LitValue(() => val.getSymbol())
+      )
+    ),
+  ],
 ]);

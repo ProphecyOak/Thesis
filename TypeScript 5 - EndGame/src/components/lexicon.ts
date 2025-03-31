@@ -50,6 +50,7 @@ let testTable: SymbolTable<VariableMeaning> = {
     return this.words.get(symbol)!;
   },
   add(destination: string, value: VariableMeaning) {
+    // console.debug(`Storing ${value} at destination: ${destination}`);
     this.words.set(destination, value);
   },
 };
