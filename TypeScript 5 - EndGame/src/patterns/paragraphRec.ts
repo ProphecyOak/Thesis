@@ -7,7 +7,7 @@ pattern(
   parserRules.PARAGRAPH,
   apply(
     list_sc(parserRules.SENTENCE, alt(str("\n"), str(" "))),
-    (sentences: XBarInterface[]) => (lookup: SymbolTable<any>) =>
+    (sentences: XBarInterface[]) => (lookup: SymbolTable) =>
       sentences.forEach((sentence: XBarInterface) => {
         sentence.assignLookup(lookup);
         sentence.root.getValue()().assignLookup(lookup).run();

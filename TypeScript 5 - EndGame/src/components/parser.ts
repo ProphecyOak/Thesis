@@ -5,7 +5,8 @@ import {
   Parser,
   Rule,
 } from "typescript-parsec";
-import { lexer, SymbolTable, TokenKind } from "../header";
+import { lexer, TokenKind } from "../header";
+import { SymbolTable } from "./lexicon";
 
 export { evaluate, pattern };
 
@@ -27,7 +28,7 @@ function pattern<T>(
 function evaluate(
   nodeType: Rule<any, any>,
   expr: string,
-  lookupTable: SymbolTable<any>,
+  lookupTable: SymbolTable,
   debug?: boolean
 ): any {
   DEBUG = debug == undefined ? false : debug;

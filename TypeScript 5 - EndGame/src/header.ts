@@ -5,7 +5,7 @@ export {
   parserRules,
   TokenKind,
   LexicalCategory,
-  SymbolTable,
+  SymbolTableInterface,
   VariableMeaning,
   lexer,
   XBarInterface,
@@ -35,22 +35,26 @@ const lexer = buildLexer([
 enum Argument {
   Theme,
   Destination,
+  Iterator,
+  Iterable,
+  Body,
 }
 
 interface XBarInterface {
   root: Value<any>;
-  lookup?: SymbolTable<VariableMeaning>;
+  lookup?: SymbolTableInterface<VariableMeaning>;
   childPhrase: XBarInterface | null;
   adjunct: XBarInterface | null;
   label: string;
-  assignLookup(lookup: SymbolTable<VariableMeaning>): XBarInterface;
-  acceptArgument(argType: Argument): void;
+  assignLookup(lookup: SymbolTableInterface<VariableMeaning>): XBarInterface;
+  acceptArgument(argType: Argument): XBarInterface;
+  optionalArgument(argType: Argument): XBarInterface;
   run(): void;
   toString(): string;
 }
 
 const parserRules = {
-  PARAGRAPH: rule<TokenKind, (lookup: SymbolTable<any>) => void>(),
+  PARAGRAPH: rule<TokenKind, (lookup: SymbolTableInterface<any>) => void>(),
   SENTENCE: rule<TokenKind, XBarInterface>(),
   REST: rule<TokenKind, string>(),
   WORD: rule<TokenKind, LexValue<any>>(),
@@ -69,8 +73,10 @@ type VariableMeaning = (
   value: Value<any>
 ) => () => XBarInterface | void | string | number;
 
-interface SymbolTable<T> {
+interface SymbolTableInterface<T> {
   words: Map<string, T>;
   lookup(symbol: string): T;
   add(destination: string, value: VariableMeaning): void;
+  createVerb(symbol: string, argTypes: Argument[], fx: Function): void;
+  has(symbol: string): boolean;
 }

@@ -1,4 +1,4 @@
-import { multiTest, testParagraph } from "../components/tester";
+import { multiTest, testParagraph, testText } from "../components/tester";
 import { parserRules } from "../header";
 
 multiTest(
@@ -13,5 +13,14 @@ multiTest(
   ],
   parserRules.PARAGRAPH,
   true,
+  testParagraph
+);
+
+testText(
+  "String Iteration",
+  "For each Character in 'Hello World' Say Character.",
+  parserRules.PARAGRAPH,
+  ["H", "e", "l", "l", "o", " ", "W", "o", "r", "l", "d"],
+  false,
   testParagraph
 );

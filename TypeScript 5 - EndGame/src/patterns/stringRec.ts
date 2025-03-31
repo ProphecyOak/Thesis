@@ -17,7 +17,7 @@ pattern(
   parserRules.LITERAL,
   apply(
     alt(parserRules.STRING_LITERAL, parserRules.NUMERIC_LITERAL),
-    (val: any) => new LitValue(() => val)
+    (val: any) => new LitValue(() => val, val.toString())
   )
 );
 

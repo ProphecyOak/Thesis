@@ -1,9 +1,9 @@
-import { SymbolTable } from "./lexicon";
+import { SymbolTableInterface } from "../header";
 
 export { Value, LitValue, LexValue, MergeValue, MergeMode };
 
 interface Value<T> {
-  attachTable(lookupTable: SymbolTable<any>): void;
+  attachTable(lookupTable: SymbolTableInterface<any>): void;
   valueType(): string;
   getValue(): () => T;
   getSymbol(): string;
@@ -30,7 +30,7 @@ class LitValue<T> implements Value<T> {
     return "Undefined Literal Symbol";
   }
 
-  attachTable(lookupTable: SymbolTable<any>) {}
+  attachTable(lookupTable: SymbolTableInterface<any>) {}
 
   getValue(): () => T {
     return this.value;
@@ -49,7 +49,7 @@ class LexValue<T> implements Value<T> {
   private symbol: string;
   private value?: () => T;
   private restOfPhrase = "";
-  private table?: SymbolTable<any>;
+  private table?: SymbolTableInterface<any>;
 
   constructor(symbol: string) {
     this.symbol = symbol;
@@ -71,16 +71,22 @@ class LexValue<T> implements Value<T> {
     return this.restOfPhrase;
   }
 
-  attachTable(lookupTable: SymbolTable<any>) {
+  attachTable(lookupTable: SymbolTableInterface<any>) {
     this.table = lookupTable;
   }
 
   getValue(): () => T {
     if (this.table == undefined)
       throw new Error(`No lookup table attached for {${this.getSymbol()}}`);
-    if (!this.table.words.has(this.symbol))
-      throw new Error(`No entry in lookup for ${this.symbol}`);
-    this.value = this.table.lookup(this.symbol)(this);
+    if (!this.table.has(this.symbol))
+      throw new Error(`No entry in lookup for {${this.symbol}}`);
+    try {
+      this.value = this.table.lookup(this.symbol)(this);
+    } catch (e) {
+      throw new Error(
+        `{${this.symbol}}: {${this.table.lookup(this.symbol)}}, ${e}`
+      );
+    }
     return this.value as () => T;
   }
 }
@@ -97,7 +103,7 @@ class MergeValue<T, S> implements Value<T> {
   private arg?: Value<S>;
   private composeMode: MergeMode;
   private children = new Array<Value<any>>();
-  private table?: SymbolTable<any>;
+  private table?: SymbolTableInterface<any>;
   private restOfPhrase = "";
 
   constructor(mode: MergeMode, fx: Value<T>, arg?: any);
@@ -129,8 +135,10 @@ class MergeValue<T, S> implements Value<T> {
     return `${this.fx.getSymbol()}(${this.arg?.getSymbol()})`;
   }
 
-  attachTable(lookupTable: SymbolTable<any>): void {
+  attachTable(lookupTable: SymbolTableInterface<any>): void {
     this.table = lookupTable;
+    if (this.fx != undefined) this.fx.attachTable(lookupTable);
+    if (this.arg != undefined) this.arg.attachTable(lookupTable);
   }
   getValue(): () => T {
     if (this.table == undefined)
