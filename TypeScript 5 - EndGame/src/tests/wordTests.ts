@@ -4,12 +4,12 @@ import { parserRules } from "../header";
 
 multiTest(
   "Word Recognizer",
-  new Map<string, string[]>([
+  [
     ["Bark", ["Bark"]],
     ["Say ", ["Say"]],
     ["Say stuff", ["ERROR"]],
     ["S2ay ", ["ERROR"]],
-  ]),
+  ],
   parserRules.WORD,
   false,
   (value: LexValue<any>) => testPrint(value.getSymbol())

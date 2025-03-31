@@ -1,8 +1,16 @@
-import { rule } from "typescript-parsec";
-import { LexValue, LitValue } from "./components/xValue";
-import { SymbolTable } from "./components/lexicon";
+import { buildLexer, rule } from "typescript-parsec";
+import { LexValue, LitValue, Value } from "./components/xValue";
 
-export { parserRules, Argument, TokenKind, LexicalCategory };
+export {
+  parserRules,
+  TokenKind,
+  LexicalCategory,
+  SymbolTableInterface,
+  VariableMeaning,
+  lexer,
+  XBarInterface,
+  Argument,
+};
 
 enum TokenKind {
   Numeric,
@@ -14,9 +22,40 @@ enum TokenKind {
   Other,
 }
 
+const lexer = buildLexer([
+  [true, /^[0-9]+/g, TokenKind.Numeric],
+  [true, /^[a-zA-Z]+/g, TokenKind.Alpha],
+  [true, /^ /g, TokenKind.Space],
+  [true, /^\n/g, TokenKind.NewLine],
+  [true, /^['"]/g, TokenKind.Quote],
+  [true, /^\\/g, TokenKind.BackSlash],
+  [true, /^./g, TokenKind.Other],
+]);
+
+enum Argument {
+  Theme,
+  Destination,
+  Iterator,
+  Iterable,
+  Body,
+}
+
+interface XBarInterface {
+  root: Value<any>;
+  lookup?: SymbolTableInterface<VariableMeaning>;
+  childPhrase: XBarInterface | null;
+  adjunct: XBarInterface | null;
+  label: string;
+  assignLookup(lookup: SymbolTableInterface<VariableMeaning>): XBarInterface;
+  acceptArgument(argType: Argument): XBarInterface;
+  optionalArgument(argType: Argument): XBarInterface;
+  run(): void;
+  toString(): string;
+}
+
 const parserRules = {
-  PARAGRAPH: rule<TokenKind, (lookup: SymbolTable<any>) => void>(),
-  SENTENCE: rule<TokenKind, LexValue<any>>(),
+  PARAGRAPH: rule<TokenKind, (lookup: SymbolTableInterface<any>) => void>(),
+  SENTENCE: rule<TokenKind, XBarInterface>(),
   REST: rule<TokenKind, string>(),
   WORD: rule<TokenKind, LexValue<any>>(),
   LITERAL: rule<TokenKind, LitValue<string | number>>(),
@@ -30,7 +69,14 @@ enum LexicalCategory {
   Variable,
 }
 
-enum Argument {
-  Theme,
-  Destination,
+type VariableMeaning = (
+  value: Value<any>
+) => () => XBarInterface | void | string | number;
+
+interface SymbolTableInterface<T> {
+  words: Map<string, T>;
+  lookup(symbol: string): T;
+  add(destination: string, value: VariableMeaning): void;
+  createVerb(symbol: string, argTypes: Argument[], fx: Function): void;
+  has(symbol: string): boolean;
 }

@@ -1,9 +1,9 @@
 import { Parser, rule, Rule } from "typescript-parsec";
 import { evaluate } from "./parser";
 import "../patterns/patternSetter";
-import { TokenKind } from "../header";
+import { SymbolTableInterface, TokenKind, XBarInterface } from "../header";
 import { Value } from "./xValue";
-import { SymbolTable, testTable } from "./lexicon";
+import { testTable } from "./lexicon";
 
 export {
   testText,
@@ -51,14 +51,14 @@ function testText<T>(
 
 function multiTest<T>(
   name: string,
-  tests: Map<string, (string | number)[]>,
+  tests: [string, (string | number)[]][],
   nodeType: Rule<any, T>,
   DEBUG = false,
   testFx?: (node: T) => void
 ) {
   describe(name, () => {
     let i = 1;
-    tests.forEach((expected: (string | number)[], prgm: string) => {
+    tests.forEach(([prgm, expected]: [string, (string | number)[]]) => {
       testText(`Test ${i}`, prgm, nodeType, expected, DEBUG, testFx);
       i++;
     });
@@ -72,11 +72,12 @@ function testValue(value: Value<any>) {
   testPrint(value.getValue()());
 }
 
-function testRun(value: Value<any>) {
-  value.getValue()();
+function testRun(value: XBarInterface) {
+  value.assignLookup(testTable);
+  value.root.getValue()().assignLookup(testTable).run();
 }
 
-function testParagraph(value: (lookup: SymbolTable<any>) => void) {
+function testParagraph(value: (lookup: SymbolTableInterface<any>) => void) {
   value(testTable);
 }
 
