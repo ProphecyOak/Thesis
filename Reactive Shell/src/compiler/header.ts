@@ -1,16 +1,12 @@
 import { buildLexer, rule } from "typescript-parsec";
 import { LexValue, LitValue, Value } from "./components/xValue";
 
-export {
-  parserRules,
-  TokenKind,
-  LexicalCategory,
+export { parserRules, TokenKind, LexicalCategory, lexer, Argument };
+export type {
   SymbolTableInterface,
   VariableMeaning,
   VariableValue,
-  lexer,
   XBarInterface,
-  Argument,
 };
 
 enum TokenKind {
@@ -43,7 +39,7 @@ enum Argument {
 }
 
 interface XBarInterface {
-  root: Value<any>;
+  root: Value<unknown>;
   lookup?: SymbolTableInterface<VariableMeaning>;
   childPhrase: XBarInterface | null;
   adjunct: XBarInterface | null;
@@ -57,10 +53,10 @@ interface XBarInterface {
 }
 
 const parserRules = {
-  PARAGRAPH: rule<TokenKind, (lookup: SymbolTableInterface<any>) => void>(),
+  PARAGRAPH: rule<TokenKind, (lookup: SymbolTableInterface<unknown>) => void>(),
   SENTENCE: rule<TokenKind, XBarInterface>(),
   REST: rule<TokenKind, string>(),
-  WORD: rule<TokenKind, LexValue<any>>(),
+  WORD: rule<TokenKind, LexValue<unknown>>(),
   LITERAL: rule<TokenKind, LitValue<string | number>>(),
   STRING_LITERAL: rule<TokenKind, string>(),
   STRING_CHARACTER: rule<TokenKind, string>(),
@@ -74,12 +70,12 @@ enum LexicalCategory {
 
 type VariableValue = void | string | number | XBarInterface | boolean;
 
-type VariableMeaning = (value: Value<any>) => () => VariableValue;
+type VariableMeaning = (value: Value<unknown>) => () => VariableValue;
 
 interface SymbolTableInterface<T> {
   words: Map<string, T>;
   lookup(symbol: string): T;
   add(destination: string, value: VariableMeaning): void;
-  createVerb(symbol: string, argTypes: Argument[], fx: Function): void;
+  createVerb(symbol: string, argTypes: Argument[], fx: () => unknown): void;
   has(symbol: string): boolean;
 }

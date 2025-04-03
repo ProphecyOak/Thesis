@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Say 'Hello World!'.</title>
+    <link rel="stylesheet" href="shell.css" />
+    <script>
+      var exports = {};
+    </script>
+    <script src="..\..\build\src\executive\shell.js" type="text/javascript">
+      onLoad();
+    </script>
+  </head>
+
+  <body>
+    <div id="shellDiv">
+      <div id="shellHistory">lorem ipsum</div>
+      <div id="shellInput">
+        >>>
+        <textarea
+          id="shellTextArea"
+          rows="1"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        ></textarea>
+      </div>
+    </div>
+  </body>
+</html>

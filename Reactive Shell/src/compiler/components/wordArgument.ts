@@ -22,13 +22,13 @@ import { SymbolTable } from "./lexicon";
 export { XBar, runSentence };
 
 class XBar implements XBarInterface {
-  root: Value<any>;
+  root: Value<unknown>;
   lookup?: SymbolTable;
   childPhrase: XBar | null = null;
   adjunct: XBar | null = null;
   label: string = "XBar";
 
-  constructor(vBar: Value<any>, lookup?: SymbolTable, label?: string) {
+  constructor(vBar: Value<unknown>, lookup?: SymbolTable, label?: string) {
     this.root = vBar;
     if (lookup != undefined) this.assignLookup(lookup);
     if (label != undefined) this.label = label;
@@ -48,7 +48,7 @@ class XBar implements XBarInterface {
     const frame = frames.get(argType)!(this.lookup);
     const currentRest: string = this.getRest();
     try {
-      let arg = expectSingleResult(
+      const arg = expectSingleResult(
         expectEOF(frame.parse(lexer.parse(currentRest)))
       );
       arg.attachTable(this.lookup);
@@ -74,7 +74,7 @@ class XBar implements XBarInterface {
     const frame = frames.get(argType)!(this.lookup);
     const currentRest: string = this.getRest();
     try {
-      let arg = expectSingleResult(
+      const arg = expectSingleResult(
         expectEOF(frame.parse(lexer.parse(currentRest)))
       );
       const mergedArg = new MergeValue(MergeMode.Composing, this.root, arg);
@@ -83,7 +83,7 @@ class XBar implements XBarInterface {
       newVBar.childPhrase = this;
       newVBar.adjunct = new XBar(arg, this.lookup, argType.toString());
       return newVBar;
-    } catch (e) {
+    } catch {
       // throw new Error(`Has rest length: {${this.getRest().length}}`);
       return this;
     }
@@ -93,8 +93,8 @@ class XBar implements XBarInterface {
     return this.adjunct != undefined
       ? this.adjunct?.root.getRest()
       : this.childPhrase != undefined
-        ? this.childPhrase?.root.getRest()
-        : this.root.getRest();
+      ? this.childPhrase?.root.getRest()
+      : this.root.getRest();
   }
 
   run(lookup?: SymbolTable) {
@@ -102,18 +102,18 @@ class XBar implements XBarInterface {
     this.root.getValue()();
   }
 
-  toString(indent = 1): string {
+  toString(): string {
     return `{${this.root.getSymbol()}}`;
   }
 }
 
-function createFrame(
-  pattern: (lookup: SymbolTable) => Parser<TokenKind, Value<any>>
-): (lookup: SymbolTable) => Parser<TokenKind, Value<any>> {
+function createFrame<T>(
+  pattern: (lookup: SymbolTable) => Parser<TokenKind, Value<T>>
+): (lookup: SymbolTable) => Parser<TokenKind, Value<T>> {
   return (lookup: SymbolTable) =>
     apply(
       seq(pattern(lookup), parserRules.REST),
-      ([newArg, rest]: [Value<any>, string]) => {
+      ([newArg, rest]: [Value<T>, string]) => {
         newArg.attachTable(lookup);
         if (rest.startsWith(" ")) rest = rest.slice(1);
         newArg.setRest(rest);
@@ -124,29 +124,28 @@ function createFrame(
 
 const frames = new Map<
   Argument,
-  (lookup: SymbolTable) => Parser<TokenKind, Value<any>>
+  (lookup: SymbolTable) => Parser<TokenKind, Value<unknown>>
 >([
   [
     Argument.Theme,
-    createFrame((lookup: SymbolTable) =>
-      alt_sc(parserRules.LITERAL, parserRules.WORD)
-    ),
+    createFrame(() => alt_sc(parserRules.LITERAL, parserRules.WORD)),
   ],
   [
     Argument.Destination,
-    createFrame((lookup: SymbolTable) =>
+    createFrame(() =>
       apply(
         kright(str("as"), parserRules.WORD),
-        (val: Value<any>) => new LitValue(() => val.getSymbol())
+        (val: Value<unknown>) => new LitValue(() => val.getSymbol())
       )
     ),
   ],
   [
     Argument.Iterator,
-    createFrame((lookup: SymbolTable) =>
+    createFrame(() =>
       apply(
         kright(str("each"), parserRules.WORD),
-        (iterator: LexValue<any>) => new LitValue(() => iterator.getSymbol())
+        (iterator: LexValue<unknown>) =>
+          new LitValue(() => iterator.getSymbol())
       )
     ),
   ],
@@ -158,11 +157,11 @@ const frames = new Map<
           str("in"),
           alt_sc(kright(str(" "), parserRules.STRING_LITERAL), parserRules.WORD)
         ),
-        (iterator: LexValue<any> | string) =>
+        (iterator: LexValue<unknown> | string) =>
           new LitValue(() => {
             if (typeof iterator == "string") return iterator;
             iterator.attachTable(lookup);
-            return iterator.getValue()().toString();
+            return iterator.getValue()();
           })
       )
     ),
@@ -185,11 +184,11 @@ const frames = new Map<
           alt_sc(parserRules.LITERAL, parserRules.WORD),
           seq(str(" "), str("times"))
         ),
-        (val: LexValue<any> | LitValue<any>) => {
+        (val: LexValue<unknown> | LitValue<unknown>) => {
           if (typeof val.getValue()() != "number")
             throw new Error("Multiplier must be a number.");
           return new LitValue(() => (sentence: XBarInterface) => {
-            for (let i = 0; i < val.getValue()(); i++)
+            for (let i = 0; i < (val.getValue()() as number); i++)
               runSentence(sentence, lookup);
           });
         }
@@ -200,7 +199,9 @@ const frames = new Map<
 
 function runSentence(sentence: XBarInterface, lookup: SymbolTable) {
   sentence.assignLookup(lookup);
-  const XBarToRun = sentence.root.getValue()().assignLookup(lookup);
+  const XBarToRun = (sentence.root.getValue()() as XBarInterface).assignLookup(
+    lookup
+  );
   if (XBarToRun.getRest().length > 0)
     throw new Error(
       `Sentence has un-parsed words remaining: {${XBarToRun.getRest()}}`

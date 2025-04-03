@@ -17,11 +17,11 @@ export {
 };
 
 function captureOutput<T>(results: string[], fx: () => T): T {
-  let oldConsole = console.log;
+  const oldConsole = console.log;
   console.log = (x: string) => {
     results.push(x);
   };
-  let output = fx();
+  const output = fx();
   console.log = oldConsole;
   return output;
 }
@@ -29,7 +29,7 @@ function captureOutput<T>(results: string[], fx: () => T): T {
 function testText<T>(
   name: string,
   prgm: string,
-  nodeType: Rule<any, T>,
+  nodeType: Rule<TokenKind, T>,
   expected: (string | number)[],
   DEBUG = false,
   testFx?: (node: T) => void
@@ -38,7 +38,7 @@ function testText<T>(
     const results = new Array<string>();
     const output = captureOutput(results, () => {
       try {
-        return evaluate(nodeType, prgm, testTable, DEBUG);
+        return evaluate(nodeType, prgm, DEBUG);
       } catch (error) {
         if (DEBUG) console.log(error);
         console.log("ERROR");
@@ -60,7 +60,7 @@ function testText<T>(
 function multiTest<T>(
   name: string,
   tests: [string, (string | number)[]][],
-  nodeType: Rule<any, T>,
+  nodeType: Rule<TokenKind, T>,
   DEBUG = false,
   testFx?: (node: T) => void
 ) {
@@ -73,24 +73,24 @@ function multiTest<T>(
   });
 }
 
-function testPrint(thing: any): void {
+function testPrint(thing: unknown): void {
   console.log(thing);
 }
-function testValue(value: Value<any>) {
+function testValue(value: Value<unknown>) {
   testPrint(value.getValue()());
 }
 
 function testRun(value: XBarInterface) {
   value.assignLookup(testTable);
-  value.root.getValue()().assignLookup(testTable).run();
+  (value.root.getValue()() as XBarInterface).assignLookup(testTable).run();
 }
 
-function testParagraph(value: (lookup: SymbolTableInterface<any>) => void) {
+function testParagraph(value: (lookup: SymbolTableInterface<unknown>) => void) {
   value(testTable);
 }
 
 function customRule<T>(parser: Parser<TokenKind, T>) {
-  let newRule = rule<TokenKind, T>();
+  const newRule = rule<TokenKind, T>();
   newRule.setPattern(parser);
   return newRule;
 }

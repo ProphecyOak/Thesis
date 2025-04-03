@@ -1,4 +1,9 @@
-import { Argument, SymbolTableInterface, VariableMeaning } from "../header";
+import {
+  Argument,
+  SymbolTableInterface,
+  VariableMeaning,
+  XBarInterface,
+} from "../header";
 import { XBar } from "./wordArgument";
 import { LitValue, Value } from "./xValue";
 
@@ -31,7 +36,7 @@ class SymbolTable implements SymbolTableInterface<VariableMeaning> {
   createVerb(symbol: string, argTypes: Argument[], fx: () => unknown): void {
     this.add(
       symbol,
-      (value: Value<any>) => () =>
+      (value: Value<unknown>) => () =>
         argTypes
           .reduce(
             (acc: XBar, e: Argument) => acc.acceptArgument(e),
@@ -44,7 +49,7 @@ class SymbolTable implements SymbolTableInterface<VariableMeaning> {
     );
   }
   createConstant(symbol: string, value: string | number | boolean): void {
-    this.add(symbol, (val: Value<any>) => () => value);
+    this.add(symbol, () => () => value);
   }
 }
 
@@ -62,7 +67,7 @@ testTable.createVerb(
   "Save",
   [Argument.Theme, Argument.Destination],
   () => (theme: string | number | boolean) => (destination: string) =>
-    testTable.add(destination, (val: Value<any>) => () => theme)
+    testTable.add(destination, () => () => theme)
 );
 testTable.createVerb(
   "For",
@@ -74,7 +79,7 @@ testTable.createVerb(
       localLex.createConstant(iterator, char);
 
       body.assignLookup(localLex);
-      body.root.getValue()().assignLookup(localLex).run();
+      (body.root.getValue()() as XBarInterface).assignLookup(localLex).run();
     });
   }
 );
