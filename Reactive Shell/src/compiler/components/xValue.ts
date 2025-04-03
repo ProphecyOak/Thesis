@@ -155,8 +155,12 @@ class MergeValue<T, S> implements Value<T> {
       case MergeMode.Composing:
         if (this.arg == undefined)
           throw new Error("Argument not defined for composing merge mode.");
-        this.value = () =>
-          (this.fx.getValue()() as (input: S) => T)(this.arg!.getValue()());
+        try {
+          this.value = () =>
+            (this.fx.getValue()() as (input: S) => T)(this.arg!.getValue()());
+        } catch (e: unknown) {
+          throw new Error(`Failed to get merged value: ${e}`);
+        }
         break;
     }
     return this.value as () => T;

@@ -37,15 +37,14 @@ class SymbolTable implements SymbolTableInterface<VariableMeaning> {
     this.add(
       symbol,
       (value: Value<unknown>) => () =>
-        argTypes
-          .reduce(
-            (acc: XBar, e: Argument) => acc.acceptArgument(e),
-            new XBar(
-              new LitValue(fx, `${symbol}Meaning`).setRest(value.getRest()),
-              this
-            )
+        argTypes.reduce(
+          (acc: XBar, e: Argument) => acc.acceptArgument(e),
+          new XBar(
+            new LitValue(fx, `${symbol}Meaning`).setRest(value.getRest()),
+            this
           )
-          .optionalArgument(Argument.Multiplier)
+        )
+      // .optionalArgument(Argument.Multiplier)
     );
   }
   createConstant(symbol: string, value: string | number | boolean): void {

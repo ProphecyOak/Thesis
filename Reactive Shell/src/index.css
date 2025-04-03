@@ -5,6 +5,10 @@ body {
   --textCol1: rgb(129, 170, 164);
   --textCol2: rgb(88, 233, 52);
   --textCol: var(--textCol2);
+  --errorCol: rgb(205, 75, 32);
   background-color: var(--bgCol);
   color: var(--textCol);
+
+  font-family: "Courier New", Courier, monospace;
+  font-size: large;
 }

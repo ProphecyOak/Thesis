@@ -1,7 +1,5 @@
 #shellDiv {
   width: 800px;
-  font-family: "Courier New", Courier, monospace;
-  font-size: large;
   margin: auto;
   margin-top: 30px;
   border: solid;
@@ -9,10 +7,12 @@
 }
 
 #shellHistory {
-  height: calc(1lh * 20);
+  height: calc(1lh * 30);
   white-space: pre-line;
   overflow: hidden auto;
   scrollbar-width: none;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 #shellInput {
@@ -20,6 +20,8 @@
   flex-direction: row;
   border-top: inherit;
   border-width: 1px;
+  padding-top: 5px;
+  margin-top: 5px;
 }
 
 #shellTextArea {
@@ -34,4 +36,12 @@
   outline: 0;
   overflow: hidden;
   margin-left: 5px;
+}
+
+.shellLine {
+  padding-bottom: 10px;
+}
+
+.errorOutput {
+  color: var(--errorCol);
 }

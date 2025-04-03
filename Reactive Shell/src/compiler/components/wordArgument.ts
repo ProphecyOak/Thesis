@@ -99,7 +99,11 @@ class XBar implements XBarInterface {
 
   run(lookup?: SymbolTable) {
     if (lookup != undefined) this.assignLookup(lookup);
-    this.root.getValue()();
+    try {
+      this.root.getValue()();
+    } catch (e: unknown) {
+      throw new Error(`Could not get sentence value when running: ${e}`);
+    }
   }
 
   toString(): string {
