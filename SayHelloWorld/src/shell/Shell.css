@@ -1,0 +1,47 @@
+#shellDiv {
+  width: 800px;
+  margin: auto;
+  margin-top: 30px;
+  border: solid;
+  padding: 5px;
+}
+
+#shellHistory {
+  height: calc(1lh * 30);
+  white-space: pre-line;
+  overflow: hidden auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+#shellInput {
+  display: flex;
+  flex-direction: row;
+  border-top: inherit;
+  border-width: 1px;
+  padding-top: 5px;
+  margin-top: 5px;
+}
+
+#shellTextArea {
+  background-color: var(--bgCol);
+  resize: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  flex-grow: 1;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  overflow: hidden;
+  margin-left: 5px;
+}
+
+.shellLine {
+  padding-bottom: 10px;
+}
+
+.errorOutput {
+  color: var(--errorCol);
+}
