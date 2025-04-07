@@ -1,4 +1,5 @@
-enum LexRoot {
+/* eslint-disable @typescript-eslint/no-unused-vars */
+export enum LexRoot {
   Void = "Void",
   String = "String",
   Number = "Number",
@@ -25,34 +26,39 @@ export class XBar {
       throw new Error(`This XBar is waiting for types: ${this.inputType}`);
     (this.value as (lexicon: Lexicon) => void)(lexicon);
   }
-  // Returns a new parent node that has this node and the sister node as children.
-  attachSister(sister: XBar): XBar {
-    const thisIsFX = this.inputType[0] == sister.outputType;
-    if (!thisIsFX && sister.inputType[0] != this.outputType)
+  typeString(): string {
+    const numArgs = this.inputType.length;
+    return this.inputType.reduceRight(
+      (acc: string, e: LexRoot) => `<${e}, ${acc}`,
+      `${this.outputType}${">".repeat(numArgs)}`
+    );
+  }
+
+  static createParent(first: XBar, second: XBar): XBar {
+    const thisIsFX = first.inputType[0] == second.outputType;
+    if (!thisIsFX && second.inputType[0] != first.outputType)
       throw new Error(
-        `XBars of types ${this.typeString()} and ${sister.typeString()} cannot compose.`
+        `XBars of types ${first.typeString()} and ${second.typeString()} cannot compose.`
       );
-    const fx = thisIsFX ? this : sister;
-    const arg = thisIsFX ? sister : this;
+    const fx = thisIsFX ? first : second;
+    const arg = thisIsFX ? second : first;
+    if (arg.inputType.length != 1 || arg.inputType[0] != LexRoot.Lexicon)
+      throw new Error(
+        `XBar of type ${arg.typeString()} might be a little too complex to be accepted by ${first.typeString()}.`
+      );
     return new XBar(
       (fx.value as (arg: unknown) => unknown)(arg.value),
       fx.inputType.slice(1),
       fx.outputType
     );
   }
-  typeString(): string {
-    const numArgs = this.inputType.length;
-    return `${this.inputType.reduceRight((acc: string, e: LexRoot) => {
-      return `<${e},${acc}`;
-    }, "")}, ${this.outputType}${">".repeat(numArgs)}`;
-  }
-
-  static createParent(fx: XBar, arg: XBar): XBar {
-    throw new Error("Method not implemented.");
-  }
 }
 
 export class Lexicon {
-  lookup(symbol: string): unknown {}
-  add(symbol: string, value: unknown): void {}
+  lookup(_symbol: string): unknown {
+    throw new Error("Method not implemented.");
+  }
+  add(_symbol: string, _value: unknown): void {
+    throw new Error("Method not implemented.");
+  }
 }
