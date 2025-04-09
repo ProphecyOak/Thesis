@@ -1,6 +1,8 @@
 import { Lexicon, LexRoot, XBar } from "../structure/xBar";
 import { multi_test } from "../tools/tester";
 
+const testLex = new Lexicon();
+
 const simpleSentence = new XBar(
   null as unknown,
   [LexRoot.Lexicon],
@@ -24,19 +26,16 @@ const stringProvider = new XBar(
 );
 
 multi_test(
-  "XBar Types",
+  "Adding to lex and grabbing back the values",
   [
-    [simpleSentence, ["<Lexicon, Void>"]],
-    [say, ["<String, <Lexicon, Void>>"]],
-    [numberStringTakingSentence, ["<Number, <String, <Lexicon, Void>>>"]],
-    [XBar.createParent(say, stringProvider), ["<Lexicon, Void>"]],
-    [XBar.createParent(stringProvider, say), ["<Lexicon, Void>"]],
+    [["A", simpleSentence], [simpleSentence]],
+    [["B", say], [say]],
+    [["C", numberStringTakingSentence], [numberStringTakingSentence]],
+    [["D", stringProvider], [stringProvider]],
+    [["A", stringProvider], [stringProvider]],
   ],
-  (testXBar: XBar) => testXBar.typeString()
-);
-
-multi_test(
-  "Fake XBar Running",
-  [[XBar.createParent(say, stringProvider), ["Hello World"]]],
-  (input: XBar) => input.run(new Lexicon())
+  ([name, newItem]: [string, XBar]) => {
+    testLex.add(name, newItem);
+    return testLex.lookup(name);
+  }
 );

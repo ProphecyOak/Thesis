@@ -7,17 +7,30 @@ export enum LexRoot {
   Lexicon = "Lexicon",
 }
 
+interface Nested<T> {
+  input: (T | Nested<T>)[];
+  output: T | Nested<T>;
+}
+
 export class XBar {
   // Contains the value of this XBar.
-  value: unknown;
+  readonly value: unknown;
   // Type of this XBar's value.
-  inputType: LexRoot[];
-  outputType: LexRoot;
+  readonly inputType: LexRoot[];
+  readonly outputType: LexRoot;
+  // Text represented by this XBar.
+  readonly symbol: string;
 
-  constructor(value: unknown, inputType: LexRoot[], outputType: LexRoot) {
+  constructor(
+    value: unknown,
+    inputType: LexRoot[],
+    outputType: LexRoot,
+    symbol?: string
+  ) {
     this.value = value;
     this.inputType = inputType;
     this.outputType = outputType;
+    this.symbol = symbol ? symbol : "";
   }
 
   // If the type of this XBar's value is (lex: ILexicon)=>void, then runs it.
@@ -26,6 +39,7 @@ export class XBar {
       throw new Error(`This XBar is waiting for types: ${this.inputType}`);
     (this.value as (lexicon: Lexicon) => void)(lexicon);
   }
+  // Returns a string representation of the XBar's value's type signature.
   typeString(): string {
     const numArgs = this.inputType.length;
     return this.inputType.reduceRight(
@@ -34,6 +48,7 @@ export class XBar {
     );
   }
 
+  // Creates a new XBar with first and second as it's children.
   static createParent(first: XBar, second: XBar): XBar {
     const thisIsFX = first.inputType[0] == second.outputType;
     if (!thisIsFX && second.inputType[0] != first.outputType)
@@ -49,16 +64,45 @@ export class XBar {
     return new XBar(
       (fx.value as (arg: unknown) => unknown)(arg.value),
       fx.inputType.slice(1),
-      fx.outputType
+      fx.outputType,
+      `${first.symbol} ${second.symbol}`
     );
   }
 }
 
-export class Lexicon {
-  lookup(_symbol: string): unknown {
-    throw new Error("Method not implemented.");
+interface ILex {
+  lookup(symbol: string): XBar;
+  add(symbol: string, value: XBar): void;
+}
+
+const emptyLex: ILex = {
+  lookup(symbol: string): XBar {
+    throw new Error(`Symbol ${symbol} is undefined in this scope.`);
+  },
+  add(_symbol: string, _value: XBar): void {
+    throw new Error(`Symbol cannot be added to a null parent.`);
+  },
+};
+
+export class Lexicon implements ILex {
+  private _parent?: ILex;
+  private entries = new Map<string, XBar>();
+
+  get parent() {
+    if (this._parent == undefined) return emptyLex;
+    return this._parent;
   }
-  add(_symbol: string, _value: unknown): void {
-    throw new Error("Method not implemented.");
+
+  constructor(parent?: ILex) {
+    this._parent = parent;
+  }
+  lookup(symbol: string): XBar {
+    symbol = symbol.toLowerCase();
+    if (this.entries.has(symbol)) return this.entries.get(symbol)!;
+    return this.parent.lookup(symbol);
+  }
+  add(symbol: string, value: XBar): void {
+    symbol = symbol.toLowerCase();
+    this.entries.set(symbol, value);
   }
 }

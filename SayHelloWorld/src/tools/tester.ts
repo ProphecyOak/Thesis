@@ -1,19 +1,28 @@
 export function multi_test<T, S>(
   name: string,
-  tests: [T, S][],
+  tests: [T, [string | S]][],
   testFx: (input: T) => S
 ) {
   describe(name, () => {
-    tests.forEach(([input, output]: [T, S], i: number) => {
-      test(`Test ${i + 1}`, () => expect(testFx(input)).toEqual(output));
+    tests.forEach(([input, expected]: [T, [string | S]], i: number) => {
+      const results = new Array<string | S>();
+      captureOutput(results, () => testFx(input));
+      test(`Test ${i + 1}`, () => expect(results).toEqual(expected));
     });
   });
 }
 
-export function captureOutput<T>(output: string[], fx: () => T): T {
+export function captureOutput<T>(
+  output: (string | T)[],
+  fx: () => T
+): (string | T)[] {
   const oldConsole = console.log;
   console.log = (x: string) => output.push(x);
-  const fxResult = fx();
+  try {
+    output.push(fx());
+  } catch (e: unknown) {
+    if (e instanceof Error) console.log(e.message);
+  }
   console.log = oldConsole;
-  return fxResult;
+  return output;
 }
