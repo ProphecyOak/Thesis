@@ -1,28 +1,33 @@
-import { Lexicon, LexRoot, XBar } from "../structure/xBar";
+import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
 import { multi_test } from "../tools/tester";
 
 const testLex = new Lexicon();
 
 const simpleSentence = new XBar(
   null as unknown,
-  [LexRoot.Lexicon],
-  LexRoot.Void
+  new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
 );
 const say = new XBar(
   (theme: (lex: Lexicon) => string) => (lex: Lexicon) =>
     console.log(theme(lex)),
-  [LexRoot.String, LexRoot.Lexicon],
-  LexRoot.Void
+  new CompoundLexType(
+    new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
+    new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+  )
 );
 const numberStringTakingSentence = new XBar(
   null as unknown,
-  [LexRoot.Number, LexRoot.String, LexRoot.Lexicon],
-  LexRoot.Void
+  new CompoundLexType(
+    LexRoot.Number,
+    new CompoundLexType(
+      LexRoot.String,
+      new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+    )
+  )
 );
 const stringProvider = new XBar(
   () => "Hello World",
-  [LexRoot.Lexicon],
-  LexRoot.String
+  new CompoundLexType(LexRoot.Lexicon, LexRoot.String)
 );
 
 multi_test(

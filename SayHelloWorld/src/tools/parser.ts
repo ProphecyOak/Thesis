@@ -5,6 +5,7 @@ import {
   buildLexer,
   expectEOF,
   expectSingleResult,
+  kmid,
   kright,
   opt_sc,
   Parser,
@@ -16,7 +17,7 @@ import {
   tok,
   Token,
 } from "typescript-parsec";
-import { Lexicon, LexRoot, XBar } from "../structure/xBar";
+import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
 
 export enum TokenKind {
   Numeric,
@@ -72,19 +73,40 @@ export class NaturalParser {
 }
 
 NaturalParser.setPattern(
+  parserRules.STRING,
+  apply(
+    kmid(str("'"), str("stuff"), str("'")),
+    () => (_lex: Lexicon) =>
+      new XBar(
+        (_lex: Lexicon) => "stuff", // MAKE IT ACTUALLY ACCEPT OTHER STRINGS
+        new CompoundLexType(LexRoot.Lexicon, LexRoot.String)
+      )
+  )
+);
+
+NaturalParser.setPattern(
   parserRules.NUMBER,
   apply(
     str("2"),
     () => (_lex: Lexicon) =>
-      new XBar((_lex: Lexicon) => -1, [LexRoot.Lexicon], LexRoot.Number)
+      new XBar(
+        (_lex: Lexicon) => 2, // MAKE IT ACTUALLY ACCEPT OTHER NUMBERS
+        new CompoundLexType(LexRoot.Lexicon, LexRoot.Number)
+      )
   )
 );
 NaturalParser.setPattern(
   parserRules.PUNCTUATION,
   apply(
-    str("."),
+    alt_sc(str("."), str("!")),
     () => (_lex: Lexicon) =>
-      new XBar((_lex: Lexicon) => -1, [LexRoot.Lexicon], LexRoot.Void)
+      new XBar(
+        (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex),
+        new CompoundLexType(
+          new CompoundLexType(LexRoot.Lexicon, LexRoot.Void),
+          new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+        )
+      )
   )
 );
 
@@ -104,7 +126,12 @@ NaturalParser.setPattern(
       rep_sc(
         kright(
           opt_sc(str(" ")),
-          alt_sc(parserRules.WORD, parserRules.NUMBER, parserRules.PUNCTUATION)
+          alt_sc(
+            parserRules.WORD,
+            parserRules.NUMBER,
+            parserRules.PUNCTUATION,
+            parserRules.STRING
+          )
         )
       )
     ),

@@ -1,4 +1,4 @@
-import { Lexicon, LexRoot, XBar } from "../structure/xBar";
+import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
 import { NaturalParser } from "../tools/parser";
 import { multi_test } from "../tools/tester";
 
@@ -9,8 +9,10 @@ testLex.add(
   new XBar(
     (theme: (lex: Lexicon) => string) => (lex: Lexicon) =>
       console.log(theme(lex)),
-    [LexRoot.String, LexRoot.Lexicon],
-    LexRoot.Void,
+    new CompoundLexType(
+      new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
+      new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+    ),
     "Say"
   )
 );
@@ -18,7 +20,7 @@ testLex.add(
 multi_test(
   "Recognizing words",
   [
-    ["Blorsnick", ["Symbol blorsnick is undefined in this scope."]],
+    ["Blorsnick", ["ERROR: Symbol blorsnick is undefined in this scope."]],
     ["Say", [testLex.lookup("Say")]],
   ],
   (text: string) =>
