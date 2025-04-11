@@ -78,7 +78,7 @@ NaturalParser.setPattern(
     kmid(str("'"), str("stuff"), str("'")),
     () => (_lex: Lexicon) =>
       new XBar(
-        (_lex: Lexicon) => "stuff", // MAKE IT ACTUALLY ACCEPT OTHER STRINGS
+        (_lex: Lexicon) => "stuff", // FIXME Accept all strings
         new CompoundLexType(LexRoot.Lexicon, LexRoot.String)
       )
   )
@@ -90,7 +90,7 @@ NaturalParser.setPattern(
     str("2"),
     () => (_lex: Lexicon) =>
       new XBar(
-        (_lex: Lexicon) => 2, // MAKE IT ACTUALLY ACCEPT OTHER NUMBERS
+        (_lex: Lexicon) => 2, // FIXME Accept all numbers
         new CompoundLexType(LexRoot.Lexicon, LexRoot.Number)
       )
   )
@@ -101,7 +101,7 @@ NaturalParser.setPattern(
     alt_sc(str("."), str("!")),
     () => (_lex: Lexicon) =>
       new XBar(
-        (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex),
+        (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex), // TODO Punctuation differences?
         new CompoundLexType(
           new CompoundLexType(LexRoot.Lexicon, LexRoot.Void),
           new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
@@ -149,9 +149,9 @@ function combineReduce([inputPreLex, restOfSentence]: [
     const newArg = restOfSentence.shift()!(lex);
     switch (newArg.symbol) {
       case "each":
-        break;
+        break; // TODO For Loop frame
       case "the":
-        break;
+        break; // TODO Variable frame
     }
     return XBar.createParent(currentTree, newArg);
   };

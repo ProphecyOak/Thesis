@@ -57,7 +57,7 @@ class SimpleLexType implements LexType {
     return false;
   }
   toString(): string {
-    return this.type.toString(); // MAYBE FIX THIS TO BETTER REPRESENT THE SETS
+    return this.type.toString();
   }
 }
 
