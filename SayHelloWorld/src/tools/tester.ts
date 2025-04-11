@@ -14,12 +14,14 @@ export function multi_test<T, S>(
 
 export function captureOutput<T>(
   output: (string | T)[],
-  fx: () => T
+  fx: () => T,
+  inShell = false
 ): (string | T)[] {
   const oldConsole = console.log;
   console.log = (x: string) => output.push(x);
   try {
-    output.push(fx());
+    const result = fx();
+    if (!inShell) output.push(result);
   } catch (e: unknown) {
     if (e instanceof Error) console.log(`ERROR: ${e.message}`);
   }

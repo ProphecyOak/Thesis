@@ -1,5 +1,8 @@
 import { FormEvent, useRef, useState } from "react";
 import "./Shell.css";
+import { captureOutput } from "../tools/tester";
+import { NaturalParser } from "../tools/parser";
+import { shellLex } from "./ShellLex";
 
 function Shell() {
   type historyItem = { command: string; results: string[]; error: boolean };
@@ -32,19 +35,16 @@ function Shell() {
 
     function executeCommand(history: historyItem) {
       console.log(`Executing: ${history.command}`);
-      // captureOutput(history.results, () => {
-      //   try {
-      //     const result = evaluate(
-      //       parserRules.PARAGRAPH,
-      //       history.command,
-      //       false
-      //     );
-      //     result(lexicon);
-      //   } catch (e: unknown) {
-      //     history.error = true;
-      //     console.log(`Could not understand line \`${history.command}\`: ${e}`);
-      //   }
-      // });
+      captureOutput(
+        history.results,
+        () =>
+          NaturalParser.evaluate(
+            history.command,
+            shellLex,
+            NaturalParser.parserRules.SENTENCE
+          ).run(shellLex),
+        true
+      );
     }
   }
 

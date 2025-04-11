@@ -25,7 +25,7 @@ function QuickGuide() {
       <h2>Starting Lexicon</h2>
       {Object.entries(fakeLexiconVerbs).map(
         ([name, meaning]: [string, string[]]) => (
-          <div>
+          <div key={name}>
             <div className="lexItemHeader">{name}</div>
             <div style={{ paddingLeft: "2em" }}>
               {meaning[0]}
