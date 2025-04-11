@@ -14,6 +14,8 @@ function Shell() {
     null as unknown as HTMLTextAreaElement
   );
 
+  // TODO Bind arrow key to grab old commands
+
   function valueChange(event: FormEvent<HTMLTextAreaElement>) {
     switch ((event.nativeEvent as InputEvent).inputType) {
       case "insertText":
@@ -41,7 +43,7 @@ function Shell() {
           NaturalParser.evaluate(
             history.command,
             shellLex,
-            NaturalParser.parserRules.SENTENCE
+            NaturalParser.parserRules.PARAGRAPH
           ).run(shellLex),
         true
       );
