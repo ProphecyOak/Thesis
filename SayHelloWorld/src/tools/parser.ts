@@ -155,6 +155,7 @@ NaturalParser.setPattern(
         kright(
           opt_sc(str(" ")),
           alt_sc(parserRules.WORD, parserRules.NUMBER, parserRules.STRING)
+          // TODO *[REWORK]* Change this to be "tokens" with types so that the argument acceptor can read them
         )
       ),
       parserRules.PUNCTUATION
@@ -189,20 +190,72 @@ NaturalParser.setPattern(
   )
 );
 
+interface frameReturn {
+  newArg: XBar;
+  size: number;
+}
+
+type frame = [string, (restOfSentence: XBar[]) => frameReturn | undefined];
+
+const framesToAccept: frame[] = [
+  [
+    "BaseFrame",
+    (restOfSentence: XBar[]) => ({ newArg: restOfSentence[0], size: 1 }),
+  ],
+  [
+    "TheValueOfFrame",
+    (restOfSentence: XBar[]) => {
+      if (restOfSentence[0].symbol != "the") return undefined;
+      if (restOfSentence[1].symbol != "value") return undefined;
+      if (restOfSentence[2].symbol != "of") return undefined;
+      return {
+        newArg: new XBar(
+          (lex: Lexicon) => lex.lookup(restOfSentence[3].symbol),
+          new CompoundLexType(
+            LexRoot.Lexicon,
+            LexRoot.ValueObject(LexRoot.Stringable)
+          )
+        ),
+        size: 4,
+      };
+    },
+  ],
+  // TODO For Loop frame
+  // TODO Variable frame
+];
+
 function combineReduce(
   inputPreLex: PreLexXBar,
   restOfSentence: PreLexXBar[]
 ): PreLexXBar {
-  if (restOfSentence.length == 0) return inputPreLex;
   return (lex: Lexicon) => {
     const currentTree = inputPreLex(lex);
-    const newArg = restOfSentence.shift()!(lex);
-    switch (newArg.symbol) {
-      case "each":
-        break; // TODO For Loop frame
-      case "the":
-        break; // TODO Variable frame
-    }
-    return XBar.createParent(currentTree, newArg);
+    const XBars = restOfSentence.map((token: PreLexXBar) => token(lex));
+    return combineReduceFactory(XBars)(currentTree);
+  };
+}
+
+function combineReduceFactory(remainingArgs: XBar[]) {
+  return function combineReduceHelper(currentTree: XBar): XBar {
+    if (remainingArgs.length == 0) return currentTree;
+    const possibleArgs = framesToAccept
+      .map(([_frameName, frameFx]: frame) => frameFx(remainingArgs))
+      .filter((value: frameReturn | undefined) => value != undefined);
+    const bestArg = largest(possibleArgs, (e: frameReturn) => e.size);
+    for (let i = 0; i < bestArg.value; i++) remainingArgs.shift();
+    return combineReduceHelper(
+      XBar.createParent(currentTree, bestArg.element.newArg)
+    );
+  };
+}
+
+function largest<T>(
+  arr: T[],
+  key: (e: T) => number
+): { element: T; value: number } {
+  const maxElement = [...arr].sort(key)[arr.length - 1];
+  return {
+    element: maxElement,
+    value: key(maxElement),
   };
 }

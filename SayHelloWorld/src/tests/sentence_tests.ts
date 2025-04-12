@@ -26,6 +26,22 @@ testLex.add(
   )
 );
 
+testLex.add(
+  "TestVariable",
+  new XBar(
+    () => ({ value: 34 }),
+    new CompoundLexType(LexRoot.Void, LexRoot.ValueObject(LexRoot.Number)),
+    "TestVariable"
+  )
+);
+
+function sentenceTest(text: string) {
+  NaturalParser.evaluate(text, testLex, NaturalParser.parserRules.SENTENCE).run(
+    testLex
+  );
+  return "FINISHED";
+}
+
 multi_test(
   "Basics",
   [
@@ -33,12 +49,11 @@ multi_test(
     ["Bark.", ["Woof!", "FINISHED"]],
     ["Say 'stuff'.", ["stuff", "FINISHED"]],
   ],
-  (text: string) => {
-    NaturalParser.evaluate(
-      text,
-      testLex,
-      NaturalParser.parserRules.SENTENCE
-    ).run(testLex);
-    return "FINISHED";
-  }
+  sentenceTest
+);
+
+multi_test(
+  "Variables",
+  [["Say the value of TestVariable.", ["34", "FINISHED"]]],
+  sentenceTest
 );

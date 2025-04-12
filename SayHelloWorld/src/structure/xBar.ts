@@ -61,6 +61,28 @@ class SimpleLexType implements LexType {
   }
 }
 
+class ObjectLexType implements LexType {
+  types = new Map<string, LexType>();
+  constructor(valueType: LexType) {
+    this.types.set("value", valueType);
+  }
+  equals(other: LexType): boolean {
+    return (
+      other instanceof ObjectLexType //&& this.objectClass == other.objectClass
+    );
+  }
+  takes(): boolean {
+    return false;
+  }
+  toString(): string {
+    return `{${Array.from(this.types.entries())
+      .map(
+        ([field, value]: [string, LexType]) => `${field}: ${value.toString()}`
+      )
+      .join(", ")}}`;
+  }
+}
+
 export const LexRoot = {
   Void: new SimpleLexType(LexPrimitive.Void),
   String: new SimpleLexType(LexPrimitive.String),
@@ -68,6 +90,7 @@ export const LexRoot = {
   Boolean: new SimpleLexType(LexPrimitive.Boolean),
   Lexicon: new SimpleLexType(LexPrimitive.Lexicon),
   Stringable: new SimpleLexType(LexPrimitive.Stringable),
+  ValueObject: (valueType: LexType) => new ObjectLexType(valueType),
 };
 
 export class XBar {

@@ -2,7 +2,7 @@ import { FormEvent, useRef, useState } from "react";
 import "./Shell.css";
 import { captureOutput } from "../tools/tester";
 import { NaturalParser } from "../tools/parser";
-import { shellLex } from "./ShellLex";
+import { shellLex } from "./shell_lexicon";
 
 function Shell() {
   type historyItem = { command: string; results: string[]; error: boolean };

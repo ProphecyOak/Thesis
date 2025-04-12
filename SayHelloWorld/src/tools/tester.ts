@@ -28,3 +28,5 @@ export function captureOutput<T>(
   console.log = oldConsole;
   return output;
 }
+
+// TODO Add more tests (paragraph, numbers, strings, etc)
