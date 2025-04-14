@@ -1,3 +1,4 @@
+import { expectEOF, expectSingleResult } from "typescript-parsec";
 import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
 import { NaturalParser } from "../tools/parser";
 import { multi_test } from "../tools/tester";
@@ -20,9 +21,15 @@ testLex.add(
 multi_test(
   "Recognizing words",
   [
-    ["Blorsnick", ["ERROR: Symbol blorsnick is undefined in this scope."]],
+    ["Blorsnick", ["ERROR: Symbol 'blorsnick' is undefined in this scope."]],
     ["Say", [testLex.lookup("Say")]],
   ],
   (text: string) =>
-    NaturalParser.evaluate(text, testLex, NaturalParser.parserRules.WORD)
+    testLex.lookup(
+      expectSingleResult(
+        expectEOF(
+          NaturalParser.parserRules.WORD.parse(NaturalParser.lexer.parse(text))
+        )
+      ).symbol
+    )
 );

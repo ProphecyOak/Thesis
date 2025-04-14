@@ -44,13 +44,14 @@ class SimpleLexType implements LexType {
   }
   equals(other: LexType): boolean {
     if (!(other instanceof SimpleLexType)) return false;
-    if (this.type == LexPrimitive.Stringable) {
+    if (this.type == LexPrimitive.Stringable)
       return [
         LexPrimitive.Boolean,
         LexPrimitive.Number,
         LexPrimitive.String,
+        LexPrimitive.Stringable,
       ].includes(other.type);
-    }
+
     return other.type == this.type;
   }
   takes(): boolean {
@@ -67,9 +68,7 @@ class ObjectLexType implements LexType {
     this.types.set("value", valueType);
   }
   equals(other: LexType): boolean {
-    return (
-      other instanceof ObjectLexType //&& this.objectClass == other.objectClass
-    );
+    return other instanceof ObjectLexType;
   }
   takes(): boolean {
     return false;
@@ -140,14 +139,18 @@ export class XBar {
 interface ILex {
   lookup(symbol: string): XBar;
   add(symbol: string, value: XBar): void;
+  has(symbol: string): boolean;
 }
 
 const emptyLex: ILex = {
   lookup(symbol: string): XBar {
-    throw new Error(`Symbol ${symbol} is undefined in this scope.`);
+    throw new Error(`Symbol '${symbol}' is undefined in this scope.`);
   },
   add(_symbol: string, _value: XBar): void {
     throw new Error(`Symbol cannot be added to a null parent.`);
+  },
+  has: function (): boolean {
+    return false;
   },
 };
 
@@ -162,6 +165,10 @@ export class Lexicon implements ILex {
 
   constructor(parent?: ILex) {
     this._parent = parent;
+  }
+  has(symbol: string): boolean {
+    symbol = symbol.toLowerCase();
+    return this.entries.has(symbol) || this.parent.has(symbol);
   }
   lookup(symbol: string): XBar {
     symbol = symbol.toLowerCase();

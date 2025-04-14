@@ -30,14 +30,24 @@ export enum TokenKind {
   Other,
 }
 
+enum SentenceTokenType {
+  Number,
+  String,
+  Word,
+}
+
+interface SentenceToken {
+  symbol: string;
+  type: SentenceTokenType;
+}
 type PreLexXBar = (lex: Lexicon) => XBar;
 
 const parserRules = {
   PARAGRAPH: rule<TokenKind, PreLexXBar>(),
   SENTENCE: rule<TokenKind, PreLexXBar>(),
-  WORD: rule<TokenKind, PreLexXBar>(),
-  NUMBER: rule<TokenKind, PreLexXBar>(),
-  STRING: rule<TokenKind, PreLexXBar>(),
+  WORD: rule<TokenKind, SentenceToken>(),
+  NUMBER: rule<TokenKind, SentenceToken>(),
+  STRING: rule<TokenKind, SentenceToken>(),
   PUNCTUATION: rule<TokenKind, PreLexXBar>(),
 };
 
@@ -94,11 +104,10 @@ NaturalParser.setPattern(
         str(quote.text)
       )
     ),
-    (value: string[]) => (_lex: Lexicon) =>
-      new XBar(
-        (_lex: Lexicon) => value.join(""),
-        new CompoundLexType(LexRoot.Lexicon, LexRoot.String)
-      )
+    (value: string[]) => ({
+      symbol: value.join(""),
+      type: SentenceTokenType.String,
+    })
   )
 );
 
@@ -110,17 +119,12 @@ NaturalParser.setPattern(
       opt_sc(kright(str("."), tok(TokenKind.Numeric)))
     ),
     ([value, decimal]: [
-        Token<TokenKind.Numeric>,
-        undefined | Token<TokenKind.Numeric>
-      ]) =>
-      (_lex: Lexicon) =>
-        new XBar(
-          (_lex: Lexicon) =>
-            Number(
-              value.text + (decimal != undefined ? `.${decimal.text}` : "")
-            ),
-          new CompoundLexType(LexRoot.Lexicon, LexRoot.Number)
-        )
+      Token<TokenKind.Numeric>,
+      undefined | Token<TokenKind.Numeric>
+    ]) => ({
+      symbol: value.text + (decimal != undefined ? `.${decimal.text}` : ""),
+      type: SentenceTokenType.Number,
+    })
   )
 );
 NaturalParser.setPattern(
@@ -140,11 +144,10 @@ NaturalParser.setPattern(
 
 NaturalParser.setPattern(
   parserRules.WORD,
-  apply(
-    tok(TokenKind.Alpha),
-    (symbol: Token<TokenKind.Alpha>) => (lex: Lexicon) =>
-      lex.lookup(symbol.text)
-  )
+  apply(tok(TokenKind.Alpha), (symbol: Token<TokenKind.Alpha>) => ({
+    symbol: symbol.text,
+    type: SentenceTokenType.Word,
+  }))
 );
 NaturalParser.setPattern(
   parserRules.SENTENCE,
@@ -155,16 +158,15 @@ NaturalParser.setPattern(
         kright(
           opt_sc(str(" ")),
           alt_sc(parserRules.WORD, parserRules.NUMBER, parserRules.STRING)
-          // TODO *[REWORK]* Change this to be "tokens" with types so that the argument acceptor can read them
         )
       ),
       parserRules.PUNCTUATION
     ),
     ([verb, sentenceTokens, punctuation]: [
-      PreLexXBar,
-      PreLexXBar[],
+      SentenceToken,
+      SentenceToken[],
       PreLexXBar
-    ]) => combineReduce(verb, sentenceTokens.concat([punctuation]))
+    ]) => combineReduce(verb, sentenceTokens, punctuation)
   )
 );
 
@@ -195,52 +197,149 @@ interface frameReturn {
   size: number;
 }
 
-type frame = [string, (restOfSentence: XBar[]) => frameReturn | undefined];
+type frame = (
+  restOfSentence: SentenceToken[],
+  lex: Lexicon
+) => frameReturn | undefined;
 
-const framesToAccept: frame[] = [
+function getXBarTypeFromToken(token: SentenceToken) {
+  switch (token.type) {
+    case SentenceTokenType.Number:
+      return LexRoot.Number;
+    case SentenceTokenType.String:
+      return LexRoot.String;
+  }
+}
+
+const framesToAccept = new Map<string, frame>([
   [
     "BaseFrame",
-    (restOfSentence: XBar[]) => ({ newArg: restOfSentence[0], size: 1 }),
+    (restOfSentence: SentenceToken[], lex: Lexicon) => {
+      if (restOfSentence.length < 1) return undefined;
+      const firstSymbol = restOfSentence[0].symbol;
+      if (restOfSentence[0].type == SentenceTokenType.Word)
+        return { newArg: lex.lookup(firstSymbol), size: 1 };
+      return {
+        newArg: new XBar(
+          () => ({ get: () => firstSymbol }),
+          new CompoundLexType(
+            LexRoot.Lexicon,
+            getXBarTypeFromToken(restOfSentence[0])!
+          )
+        ),
+        size: 1,
+      };
+    },
   ],
   [
     "TheValueOfFrame",
-    (restOfSentence: XBar[]) => {
+    (restOfSentence: SentenceToken[], lex: Lexicon) => {
+      if (restOfSentence.length < 4) return undefined;
       if (restOfSentence[0].symbol != "the") return undefined;
       if (restOfSentence[1].symbol != "value") return undefined;
+      // TODO Make the "value" word choose the object key
       if (restOfSentence[2].symbol != "of") return undefined;
+      const variableName = restOfSentence[3];
+      if (lex.has(variableName.symbol))
+        return {
+          newArg: XBar.createParent(
+            lex.lookup(variableName.symbol),
+            new XBar(
+              (valueObj: { value: unknown }) => () => ({
+                get: () => valueObj.value,
+                set: (value: unknown) => {
+                  valueObj.value = value;
+                },
+              }),
+              new CompoundLexType(
+                LexRoot.ValueObject(LexRoot.Stringable),
+                new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable)
+              )
+            )
+          ),
+          size: 4,
+        };
+      lex.add(
+        variableName.symbol,
+        new XBar(
+          { value: "EMPTY-VARIABLE" },
+          LexRoot.ValueObject(LexRoot.Void),
+          variableName.symbol
+        )
+      );
       return {
-        newArg: new XBar(
-          (lex: Lexicon) => lex.lookup(restOfSentence[3].symbol),
-          new CompoundLexType(
-            LexRoot.Lexicon,
-            LexRoot.ValueObject(LexRoot.Stringable)
+        newArg: XBar.createParent(
+          lex.lookup(variableName.symbol),
+          new XBar(
+            (valueObj: { value: unknown }) => () => ({
+              get: () => valueObj.value,
+              set: (value: unknown) => {
+                valueObj.value = value;
+              },
+            }),
+            new CompoundLexType(
+              LexRoot.ValueObject(LexRoot.Stringable),
+              new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable)
+            )
           )
         ),
         size: 4,
       };
     },
   ],
+  [
+    "VariableDestinationFrame",
+    (restOfSentence: SentenceToken[], _lex: Lexicon) => {
+      if (restOfSentence.length < 1) return undefined;
+      if (restOfSentence[0].symbol != "as") return undefined;
+      const newVarName = restOfSentence[1];
+      const foundValue = framesToAccept.get("TheValueOfFrame")!(
+        restOfSentence.slice(1),
+        _lex
+      );
+      if (foundValue == undefined) return undefined;
+      return {
+        newArg: new XBar(newVarName.symbol, LexRoot.String, newVarName.symbol),
+        size: 5,
+      };
+    },
+  ],
   // TODO For Loop frame
-  // TODO Variable frame
-];
+]);
 
 function combineReduce(
-  inputPreLex: PreLexXBar,
-  restOfSentence: PreLexXBar[]
+  verb: SentenceToken,
+  restOfSentence: SentenceToken[],
+  punctuation: PreLexXBar
 ): PreLexXBar {
   return (lex: Lexicon) => {
-    const currentTree = inputPreLex(lex);
-    const XBars = restOfSentence.map((token: PreLexXBar) => token(lex));
-    return combineReduceFactory(XBars)(currentTree);
+    return XBar.createParent(
+      combineReduceFactory(restOfSentence, lex)(lex.lookup(verb.symbol)),
+      punctuation(lex)
+    );
   };
 }
 
-function combineReduceFactory(remainingArgs: XBar[]) {
+function combineReduceFactory(remainingArgs: SentenceToken[], lex: Lexicon) {
   return function combineReduceHelper(currentTree: XBar): XBar {
     if (remainingArgs.length == 0) return currentTree;
-    const possibleArgs = framesToAccept
-      .map(([_frameName, frameFx]: frame) => frameFx(remainingArgs))
+    const errors = new Array<string>();
+    const possibleArgs = Array.from(framesToAccept.entries())
+      .map(([_frameName, frameFx]: [string, frame]) => {
+        try {
+          return frameFx(remainingArgs, lex);
+        } catch (e: unknown) {
+          if (e instanceof Error) errors.push(e.message);
+          return undefined;
+        }
+      })
       .filter((value: frameReturn | undefined) => value != undefined);
+    if (possibleArgs.length == 0)
+      throw new Error(
+        `No arguments matched for '${remainingArgs
+          .map((token: SentenceToken) => token.symbol)
+          .join(" ")}'\nErrors received:\n-${errors.join("\n-")}`
+      );
     const bestArg = largest(possibleArgs, (e: frameReturn) => e.size);
     for (let i = 0; i < bestArg.value; i++) remainingArgs.shift();
     return combineReduceHelper(
