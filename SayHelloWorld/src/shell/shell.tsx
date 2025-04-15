@@ -37,6 +37,11 @@ function Shell() {
 
     function executeCommand(history: historyItem) {
       console.log(`Executing: ${history.command}`);
+      if (history.command.toLowerCase() == "clear.") {
+        console.log("Clearing Console.");
+        setHistory([]);
+        return;
+      }
       captureOutput(
         history.results,
         () =>
@@ -45,6 +50,7 @@ function Shell() {
             shellLex,
             NaturalParser.parserRules.PARAGRAPH
           ).run(shellLex),
+        false,
         true
       );
     }
