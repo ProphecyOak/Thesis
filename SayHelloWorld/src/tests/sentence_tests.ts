@@ -1,4 +1,10 @@
-import { Lexicon, XBar, LexRoot, CompoundLexType } from "../structure/xBar";
+import {
+  Lexicon,
+  XBar,
+  LexRoot,
+  CompoundLexType,
+  LexType,
+} from "../structure/xBar";
 import { NaturalParser } from "../tools/parser";
 import { multi_test } from "../tools/tester";
 
@@ -21,12 +27,17 @@ testLex.add(
 testLex.add(
   "Save",
   new XBar(
-    (value: XBar) => (destination: string) => (lex: Lexicon) => {
-      console.log(
-        `Trying to save under destination: '${destination}' with value: '${value}'`
-      );
-      lex.add(destination, value);
-    },
+    (value: (lex: Lexicon) => { get: () => unknown; type: LexType }) =>
+      (destination: { get: () => string }) =>
+      (lex: Lexicon) => {
+        lex.add(
+          destination.get(),
+          new XBar(
+            { value: value(lex).get() },
+            LexRoot.ValueObject(value(lex).type)
+          )
+        );
+      },
     new CompoundLexType(
       new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable),
       new CompoundLexType(
@@ -75,11 +86,11 @@ multi_test(
   "Variables",
   [
     ["Say the value of TestVariable.", ["34", "FINISHED"]],
+    ["Save 'stuff' as the value of theStringVariable.", ["FINISHED"]],
     [
       "Save 2 as the value of myNewVariable. Say the value of myNewVariable.",
       ["2", "FINISHED"],
     ],
   ],
-  sentenceTest,
-  true
+  sentenceTest
 );

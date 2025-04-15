@@ -9,13 +9,15 @@ enum LexPrimitive {
   Stringable = "Stringable",
 }
 
-interface LexType {
+export interface LexType {
   equals(other: LexType): boolean;
   takes(other: LexType): boolean;
   toString(): string;
+  readonly typeKind: string;
 }
 
 export class CompoundLexType implements LexType {
+  typeKind = "CompoundLexType";
   input: LexType;
   output: LexType;
 
@@ -38,6 +40,7 @@ export class CompoundLexType implements LexType {
   }
 }
 class SimpleLexType implements LexType {
+  typeKind = "SimpleLexType";
   type: LexPrimitive;
   constructor(type: LexPrimitive) {
     this.type = type;
@@ -62,11 +65,13 @@ class SimpleLexType implements LexType {
   }
 }
 
-class ObjectLexType implements LexType {
+export class ObjectLexType implements LexType {
+  typeKind = "ObjectLexType";
   types = new Map<string, LexType>();
   constructor(valueType: LexType) {
     this.types.set("value", valueType);
   }
+
   equals(other: LexType): boolean {
     return other instanceof ObjectLexType;
   }

@@ -7,8 +7,10 @@ export function multi_test<T, S>(
   describe(name, () => {
     tests.forEach(([input, expected]: [T, (string | S)[]], i: number) => {
       const results = new Array<string | S>();
-      captureOutput(results, () => testFx(input), throwEm);
-      test(`Test ${i + 1}`, () => expect(results).toEqual(expected));
+      test(`Test ${i + 1}`, () => {
+        captureOutput(results, () => testFx(input), throwEm);
+        expect(results).toEqual(expected);
+      });
     });
   });
 }

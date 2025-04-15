@@ -6,8 +6,8 @@ const simpleSentence = new XBar(
   new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
 );
 const say = new XBar(
-  (theme: (lex: Lexicon) => string) => (lex: Lexicon) =>
-    console.log(theme(lex)),
+  (theme: (lex: Lexicon) => { get: () => string }) => (lex: Lexicon) =>
+    console.log(theme(lex).get()),
   new CompoundLexType(
     new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
     new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
@@ -24,7 +24,7 @@ const numberStringTakingSentence = new XBar(
   )
 );
 const stringProvider = new XBar(
-  () => "Hello World",
+  () => ({ get: () => "Hello World" }),
   new CompoundLexType(LexRoot.Lexicon, LexRoot.String)
 );
 
