@@ -7,6 +7,7 @@ import { shellLex } from "./shell_lexicon";
 function Shell() {
   type historyItem = { command: string; results: string[]; error: boolean };
   const [commandHistory, setHistory] = useState([] as historyItem[]);
+  const [currentCommandHeight, modifyCommandHeight] = useState(-1);
   const shellHistoryElement = useRef<HTMLDivElement>(
     null as unknown as HTMLDivElement
   );
@@ -15,6 +16,29 @@ function Shell() {
   );
 
   // TODO Bind arrow key to grab old commands
+  function setToOldCommand(newHeight: number) {
+    shellInputElement.current.value =
+      newHeight == -1 ? "" : commandHistory[newHeight].command;
+  }
+  function keyDownChecker(event: KeyboardEvent) {
+    switch (event.key) {
+      case "ArrowUp": {
+        const newHeight = Math.min(
+          commandHistory.length - 1,
+          currentCommandHeight + 1
+        );
+        modifyCommandHeight(newHeight);
+        setToOldCommand(newHeight);
+        break;
+      }
+      case "ArrowDown": {
+        const newHeight = Math.max(-1, currentCommandHeight - 1);
+        modifyCommandHeight(newHeight);
+        setToOldCommand(newHeight);
+        break;
+      }
+    }
+  }
 
   function valueChange(event: FormEvent<HTMLTextAreaElement>) {
     switch ((event.nativeEvent as InputEvent).inputType) {
@@ -24,7 +48,7 @@ function Shell() {
         const line = (event.target as HTMLTextAreaElement).value;
         const results = new Array<string>();
         const newHistory: historyItem = {
-          command: line.slice(0, line.length - 1),
+          command: line.replace("\n", ""),
           results: results,
           error: false,
         };
@@ -79,6 +103,7 @@ function Shell() {
             ref={shellInputElement}
             rows={1}
             onInput={valueChange}
+            onKeyDown={keyDownChecker}
           ></textarea>
         </div>
       </div>
