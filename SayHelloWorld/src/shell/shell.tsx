@@ -1,13 +1,15 @@
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, useRef, useState } from "react";
 import "./Shell.css";
 import { captureOutput } from "../tools/tester";
 import { NaturalParser } from "../tools/parser";
 import { shellLex } from "./shell_lexicon";
+import { Lexicon } from "../structure/xBar";
 
 function Shell() {
   type historyItem = { command: string; results: string[]; error: boolean };
   const [commandHistory, setHistory] = useState([] as historyItem[]);
   const [currentCommandHeight, modifyCommandHeight] = useState(-1);
+  const [localLex, changeLocalLex] = useState(new Lexicon(shellLex));
   const shellHistoryElement = useRef<HTMLDivElement>(
     null as unknown as HTMLDivElement
   );
@@ -15,7 +17,6 @@ function Shell() {
     null as unknown as HTMLTextAreaElement
   );
 
-  // TODO Bind arrow key to grab old commands
   function setToOldCommand(newHeight: number) {
     shellInputElement.current.value =
       newHeight == -1 ? "" : commandHistory[newHeight].command;
@@ -66,14 +67,20 @@ function Shell() {
         setHistory([]);
         return;
       }
+      if (history.command.toLowerCase() == "reset.") {
+        console.log("Resetting Lexicon.");
+        changeLocalLex(new Lexicon(shellLex));
+        setHistory([]);
+        return;
+      }
       captureOutput(
         history.results,
         () =>
           NaturalParser.evaluate(
             history.command,
-            shellLex,
+            localLex,
             NaturalParser.parserRules.PARAGRAPH
-          ).run(shellLex),
+          ).run(localLex),
         false,
         true
       );
