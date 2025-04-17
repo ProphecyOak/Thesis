@@ -55,4 +55,21 @@ shellLex.add(
   )
 );
 
+shellLex.add(
+  "True",
+  new XBar(
+    () => ({ get: () => true }),
+    new CompoundLexType(LexRoot.Lexicon, LexRoot.Boolean),
+    "True"
+  )
+);
+shellLex.add(
+  "False",
+  new XBar(
+    () => ({ get: () => false }),
+    new CompoundLexType(LexRoot.Lexicon, LexRoot.Boolean),
+    "False"
+  )
+);
+
 // TODO "For" Definition

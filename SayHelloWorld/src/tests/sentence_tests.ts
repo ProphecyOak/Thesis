@@ -78,6 +78,7 @@ multi_test(
     ["Say 2.", ["2", "FINISHED"]],
     ["Bark.", ["Woof!", "FINISHED"]],
     ["Say 'stuff'.", ["stuff", "FINISHED"]],
+    ["Say 'stuff' 2 times.", ["stuff", "stuff", "FINISHED"]],
   ],
   sentenceTest
 );

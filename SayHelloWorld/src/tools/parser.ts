@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  alt,
   alt_sc,
   apply,
   buildLexer,
   combine,
   expectEOF,
   expectSingleResult,
+  fail,
   kleft,
   kright,
   opt_sc,
@@ -201,6 +203,10 @@ addFrame(
           new CompoundLexType(LexRoot.Lexicon, LexRoot.Number),
           literal.symbol
         )
+    ),
+    apply(
+      alt_sc(str("true"), str("false")),
+      (val: Token<TokenKind>) => (lex: Lexicon) => lex.lookup(val.text)
     )
   )
 );
@@ -244,13 +250,33 @@ addFrame(
   )
 );
 
+addFrame(
+  "X Times",
+  apply(
+    combine(parserRules.NUMBER, (value: SentenceToken) => {
+      if (value.symbol.includes("."))
+        return fail("You cannot loop a non-integer number of times.");
+      return apply(seq(str(" "), str("times")), () => Number(value.symbol));
+    }),
+    (value: number) => (_lex: Lexicon) =>
+      new XBar(
+        (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => {
+          for (let i = 0; i < value; i++) phrase(lex);
+        },
+        new CompoundLexType(
+          new CompoundLexType(LexRoot.Lexicon, LexRoot.Void),
+          new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+        )
+      )
+  )
+);
+
 const altFrame = (() => {
   const argFrames = Array.from(frames.values()).map(
     (value: Frame) => value.pattern
   );
   let outAlt = argFrames.shift()!;
-  for (let i = 0; i < argFrames.length; i++)
-    outAlt = alt_sc(outAlt, argFrames[i]);
+  for (let i = 0; i < argFrames.length; i++) outAlt = alt(outAlt, argFrames[i]);
   return outAlt;
 })();
 
