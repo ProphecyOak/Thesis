@@ -71,11 +71,12 @@ export class NaturalParser {
     sentence: string,
     lexicon: Lexicon,
     rule: Rule<TokenKind, PreLexXBar>
-  ): XBar {
-    const parseResult = expectSingleResult(
-      expectEOF(rule.parse(NaturalParser.lexer.parse(sentence)))
-    )(lexicon);
-    return parseResult;
+  ): XBar[] {
+    const parseResults = expectEOF(
+      rule.parse(NaturalParser.lexer.parse(sentence))
+    );
+    const parseResult = expectSingleResult(parseResults)(lexicon);
+    return [parseResult];
   }
 
   static setPattern<T>(
@@ -134,13 +135,14 @@ NaturalParser.setPattern(
   parserRules.PUNCTUATION,
   apply(
     alt_sc(str("."), str("!")),
-    () =>
+    (punctuationMark: Token<TokenKind>) =>
       new XBar(
         (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex), // TODO Punctuation differences?
         new CompoundLexType(
           new CompoundLexType(LexRoot.Lexicon, LexRoot.Void),
           new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
-        )
+        ),
+        punctuationMark.text
       )
   )
 );
@@ -211,61 +213,141 @@ addFrame(
   )
 );
 
-const variableValuePattern: Parser<TokenKind, SentenceToken> = kright(
-  seq(str("the"), str(" "), str("value"), str(" "), str("of"), str(" ")),
+const variableValuePattern: Parser<TokenKind, [SentenceToken, SentenceToken]> =
+  apply(
+    seq(
+      kright(seq(str("the"), str(" ")), parserRules.WORD),
+      kright(seq(str(" "), str("of"), str(" ")), parserRules.WORD)
+    ),
+    ([property, word]: [SentenceToken, SentenceToken]) => [word, property]
+  );
+const variablePossesivePattern: Parser<
+  TokenKind,
+  [SentenceToken, SentenceToken]
+> = seq(
+  kleft(parserRules.WORD, seq(str("'"), str("s"), str(" "))),
   parserRules.WORD
 );
 
 addFrame(
   "The Value Of",
-  apply(variableValuePattern, (word: SentenceToken) => (lex: Lexicon) => {
-    const definedWord = lex.lookup(word.symbol);
-    return XBar.createParent(
-      definedWord,
-      new XBar(
-        (valueObj: { value: unknown }) => () => ({
-          get: () => valueObj.value,
-        }),
-        new CompoundLexType(
-          LexRoot.ValueObject(LexRoot.Stringable),
-          new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable)
-        )
-      )
-    );
-  })
+  alt(
+    apply(
+      variableValuePattern,
+      ([word, property]: [SentenceToken, SentenceToken]) =>
+        (lex: Lexicon) => {
+          if (property.symbol.toLowerCase() != "value")
+            throw new Error("You can only grab values right now.");
+          const definedWord = lex.lookup(word.symbol);
+          return XBar.createParent(
+            new XBar(
+              (valueObj: { value: unknown }) => () => ({
+                get: () => valueObj.value,
+              }),
+              new CompoundLexType(
+                definedWord.type,
+                new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable)
+              ),
+              `the ${property.symbol} of`
+            ),
+            definedWord
+          );
+        }
+    ),
+    apply(
+      variablePossesivePattern,
+      ([word, property]: [SentenceToken, SentenceToken]) =>
+        (lex: Lexicon) => {
+          if (property.symbol.toLowerCase() != "value")
+            throw new Error("You can only grab values right now.");
+          const definedWord = lex.lookup(word.symbol);
+          return XBar.createParent(
+            new XBar(
+              (valueObj: { value: unknown }) => () => ({
+                get: () => valueObj.value,
+              }),
+              new CompoundLexType(
+                definedWord.type,
+                new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable)
+              ),
+              `'s ${property.symbol}`
+            ),
+            definedWord
+          );
+        }
+    )
+  )
 );
 
 addFrame(
   "As Destination",
   apply(
-    kright(seq(str("as"), str(" ")), variableValuePattern),
-    (word: SentenceToken) => (_lex: Lexicon) => {
-      return new XBar(
-        {
-          get: () => word.symbol,
-        },
-        LexRoot.Stringable
-      );
-    }
+    kright(
+      seq(str("as"), str(" ")),
+      alt(variableValuePattern, variablePossesivePattern)
+    ),
+    ([word, property]: [SentenceToken, SentenceToken]) =>
+      (_lex: Lexicon) => {
+        return new XBar(
+          {
+            get: () => word.symbol,
+          },
+          LexRoot.Stringable,
+          `as the ${property} of ${word.symbol}`
+        );
+      }
   )
 );
 
 addFrame(
   "X Times",
   apply(
-    combine(parserRules.NUMBER, (value: SentenceToken) => {
-      if (value.symbol.includes("."))
-        return fail("You cannot loop a non-integer number of times.");
-      return apply(seq(str(" "), str("times")), () => Number(value.symbol));
-    }),
-    (value: number) => (_lex: Lexicon) =>
-      new XBar(
-        (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => {
-          for (let i = 0; i < value; i++) phrase(lex);
-        },
-        new CompoundLexType(
-          new CompoundLexType(LexRoot.Lexicon, LexRoot.Void),
-          new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+    alt(
+      combine(parserRules.NUMBER, (value: SentenceToken) => {
+        if (value.symbol.includes("."))
+          return fail("You cannot loop a non-integer number of times.");
+        return apply(
+          seq(str(" "), str("times")),
+          () => (_lex: Lexicon) =>
+            new XBar(
+              () => ({
+                get: () => Number(value.symbol),
+                type: LexRoot.Number,
+              }),
+              new CompoundLexType(LexRoot.Lexicon, LexRoot.Number),
+              value.symbol
+            )
+        );
+      }),
+      apply(
+        kleft(frames.get("The Value Of")!.pattern, seq(str(" "), str("times"))),
+        (oldValue: PreLexXBar) => (lex: Lexicon) => {
+          const lexedBar = oldValue(lex);
+          return new XBar(
+            lexedBar.value,
+            new CompoundLexType(LexRoot.Lexicon, LexRoot.Number),
+            lexedBar.symbol
+          );
+        }
+      )
+    ),
+    (iterationCount: PreLexXBar) => (lex: Lexicon) =>
+      XBar.createParent(
+        iterationCount(lex),
+        new XBar(
+          (value: (lex: Lexicon) => { get: () => number }) =>
+            (phrase: (_lex: Lexicon) => void) =>
+            (lex: Lexicon) => {
+              for (let i = 0; i < value(lex).get(); i++) phrase(lex);
+            },
+          new CompoundLexType(
+            new CompoundLexType(LexRoot.Lexicon, LexRoot.Number),
+            new CompoundLexType(
+              new CompoundLexType(LexRoot.Lexicon, LexRoot.Void),
+              new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+            )
+          ),
+          "times"
         )
       )
   )

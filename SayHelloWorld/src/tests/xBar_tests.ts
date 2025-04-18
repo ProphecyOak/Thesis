@@ -1,5 +1,6 @@
 import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
 import { multi_test } from "../tools/tester";
+import { getPrintableTree } from "../tools/tree_printer";
 
 const simpleSentence = new XBar(
   null as unknown,
@@ -11,7 +12,8 @@ const say = new XBar(
   new CompoundLexType(
     new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
     new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
-  )
+  ),
+  "Say"
 );
 const numberStringTakingSentence = new XBar(
   null as unknown,
@@ -25,7 +27,8 @@ const numberStringTakingSentence = new XBar(
 );
 const stringProvider = new XBar(
   () => ({ get: () => "Hello World" }),
-  new CompoundLexType(LexRoot.Lexicon, LexRoot.String)
+  new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
+  "'Hello World'"
 );
 
 multi_test(
@@ -59,3 +62,20 @@ test("Stringable Takes Test", () => {
     )
   ).toEqual(true);
 });
+
+multi_test(
+  "Printing Trees",
+  [
+    [
+      XBar.createParent(say, stringProvider),
+      [
+        "Say 'Hello World' - <Lexicon, Void>\n" +
+          "  ├─Say - <<Lexicon, String>, <Lexicon, Void>>\n" +
+          "  └─'Hello World' - <Lexicon, String>\n",
+      ],
+    ],
+  ],
+  (xbar: XBar) => {
+    console.log(getPrintableTree(xbar, XBar.toTree));
+  }
+);

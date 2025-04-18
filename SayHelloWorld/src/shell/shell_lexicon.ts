@@ -40,7 +40,8 @@ shellLex.add(
           destination.get(),
           new XBar(
             { value: value(lex).get() },
-            LexRoot.ValueObject(value(lex).type)
+            LexRoot.ValueObject(value(lex).type),
+            destination.get()
           )
         );
       },

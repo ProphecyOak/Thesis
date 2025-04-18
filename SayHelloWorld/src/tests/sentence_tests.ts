@@ -34,7 +34,8 @@ testLex.add(
           destination.get(),
           new XBar(
             { value: value(lex).get() },
-            LexRoot.ValueObject(value(lex).type)
+            LexRoot.ValueObject(value(lex).type),
+            destination.get()
           )
         );
       },
@@ -68,7 +69,7 @@ function sentenceTest(text: string) {
     text,
     testLex,
     NaturalParser.parserRules.PARAGRAPH
-  ).run(testLex);
+  ).forEach((x) => x.run(testLex));
   return "FINISHED";
 }
 
@@ -91,6 +92,14 @@ multi_test(
     [
       "Save 2 as the value of myNewVariable. Say the value of myNewVariable.",
       ["2", "FINISHED"],
+    ],
+    [
+      "Save 5 as the value of fiveVar. Say the value of fiveVar the value of fiveVar times.",
+      ["5", "5", "5", "5", "5", "FINISHED"],
+    ],
+    [
+      "Save 5 as the value of fiveVar. Say the value of fiveVar 5 times.",
+      ["5", "5", "5", "5", "5", "FINISHED"],
     ],
   ],
   sentenceTest

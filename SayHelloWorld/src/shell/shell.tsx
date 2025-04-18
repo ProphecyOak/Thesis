@@ -80,7 +80,7 @@ function Shell() {
             history.command,
             localLex,
             NaturalParser.parserRules.PARAGRAPH
-          ).run(localLex),
+          ).forEach((x) => x.run(localLex)),
         false,
         true
       );

@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { getPrintableTree } from "../tools/tree_printer";
+
 enum LexPrimitive {
   Void = "Void",
   String = "String",
@@ -53,7 +55,7 @@ class SimpleLexType implements LexType {
         LexPrimitive.Number,
         LexPrimitive.String,
         LexPrimitive.Stringable,
-      ].includes(other.type);
+      ].includes(other.type); // || other instanceof ObjectLexType
 
     return other.type == this.type;
   }
@@ -105,6 +107,9 @@ export class XBar {
   // Text represented by this XBar.
   readonly symbol: string;
 
+  // Child XBars
+  children?: XBar[];
+
   constructor(value: unknown, type: LexType, symbol?: string) {
     this.value = value;
     this.type = type;
@@ -127,17 +132,29 @@ export class XBar {
     const thisIsFX = first.type.takes(second.type);
     if (!thisIsFX && !second.type.takes(first.type))
       throw new Error(
-        `XBars of types ${first.typeString()} and ${second.typeString()} cannot compose.`
+        `XBars of types ${first.typeString()} and ${second.typeString()} cannot compose:\n` +
+          `Tree 1:\n${getPrintableTree(first, XBar.toTree)}\n` +
+          `Tree 2:\n${getPrintableTree(second, XBar.toTree)}\n`
       );
     const fx = thisIsFX ? first : second;
     const arg = thisIsFX ? second : first;
     if (!(fx.type instanceof CompoundLexType))
       throw new Error(`Type ${fx.type.toString()} cannot be a function.`);
-    return new XBar(
+    const newXBar = new XBar(
       (fx.value as (arg: unknown) => unknown)(arg.value),
       fx.type.output,
       `${first.symbol} ${second.symbol}`
     );
+    newXBar.children = [first, second];
+    return newXBar;
+  }
+  static toTree(xbar: XBar): { label: string; children: XBar[] } {
+    return {
+      label:
+        (xbar.symbol != "" ? xbar.symbol : "missing") +
+        ` - ${xbar.typeString()}`,
+      children: xbar.children == undefined ? [] : xbar.children,
+    };
   }
 }
 
