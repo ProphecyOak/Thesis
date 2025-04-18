@@ -1,33 +1,34 @@
-import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
+import { CompoundSemanticType, LexRoot } from "../structure/semantic_type";
+import { Lexicon, XBar } from "../structure/xBar";
 import { multi_test } from "../tools/tester";
 import { getPrintableTree } from "../tools/tree_printer";
 
 const simpleSentence = new XBar(
   null as unknown,
-  new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+  new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
 );
 const say = new XBar(
   (theme: (lex: Lexicon) => { get: () => string }) => (lex: Lexicon) =>
     console.log(theme(lex).get()),
-  new CompoundLexType(
-    new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
-    new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+  new CompoundSemanticType(
+    new CompoundSemanticType(LexRoot.Lexicon, LexRoot.String),
+    new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
   ),
   "Say"
 );
 const numberStringTakingSentence = new XBar(
   null as unknown,
-  new CompoundLexType(
+  new CompoundSemanticType(
     LexRoot.Number,
-    new CompoundLexType(
+    new CompoundSemanticType(
       LexRoot.String,
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
     )
   )
 );
 const stringProvider = new XBar(
   () => ({ get: () => "Hello World" }),
-  new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
+  new CompoundSemanticType(LexRoot.Lexicon, LexRoot.String),
   "'Hello World'"
 );
 
@@ -51,14 +52,14 @@ multi_test(
 
 test("Stringable Takes Test", () => {
   expect(
-    new CompoundLexType(
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable),
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
-    ).takes(new CompoundLexType(LexRoot.Lexicon, LexRoot.Number))
+    new CompoundSemanticType(
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable),
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+    ).takes(new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Number))
   ).toEqual(true);
   expect(
-    new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable).equals(
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Number)
+    new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable).equals(
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Number)
     )
   ).toEqual(true);
 });

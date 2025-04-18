@@ -1,33 +1,34 @@
-import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
+import { CompoundSemanticType, LexRoot } from "../structure/semantic_type";
+import { Lexicon, XBar } from "../structure/xBar";
 import { multi_test } from "../tools/tester";
 
 const testLex = new Lexicon();
 
 const simpleSentence = new XBar(
   null as unknown,
-  new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+  new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
 );
 const say = new XBar(
   (theme: (lex: Lexicon) => string) => (lex: Lexicon) =>
     console.log(theme(lex)),
-  new CompoundLexType(
-    new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
-    new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+  new CompoundSemanticType(
+    new CompoundSemanticType(LexRoot.Lexicon, LexRoot.String),
+    new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
   )
 );
 const numberStringTakingSentence = new XBar(
   null as unknown,
-  new CompoundLexType(
+  new CompoundSemanticType(
     LexRoot.Number,
-    new CompoundLexType(
+    new CompoundSemanticType(
       LexRoot.String,
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
     )
   )
 );
 const stringProvider = new XBar(
   () => "Hello World",
-  new CompoundLexType(LexRoot.Lexicon, LexRoot.String)
+  new CompoundSemanticType(LexRoot.Lexicon, LexRoot.String)
 );
 
 multi_test(

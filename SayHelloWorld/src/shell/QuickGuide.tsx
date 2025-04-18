@@ -24,7 +24,6 @@ const fakeLexiconVerbs = {
 const fakeLexiconVariables = {
   true: "true",
   false: "false",
-  testVARIABLE: "2",
 };
 
 function QuickGuide() {

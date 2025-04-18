@@ -1,7 +1,8 @@
 import { expectEOF, expectSingleResult } from "typescript-parsec";
-import { CompoundLexType, Lexicon, LexRoot, XBar } from "../structure/xBar";
+import { Lexicon, XBar } from "../structure/xBar";
 import { NaturalParser } from "../tools/parser";
 import { multi_test } from "../tools/tester";
+import { CompoundSemanticType, LexRoot } from "../structure/semantic_type";
 
 const testLex = new Lexicon();
 
@@ -10,9 +11,9 @@ testLex.add(
   new XBar(
     (theme: (lex: Lexicon) => string) => (lex: Lexicon) =>
       console.log(theme(lex)),
-    new CompoundLexType(
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.String),
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
+    new CompoundSemanticType(
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.String),
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
     ),
     "Say"
   )

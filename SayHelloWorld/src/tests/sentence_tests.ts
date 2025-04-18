@@ -1,63 +1,10 @@
-import {
-  Lexicon,
-  XBar,
-  LexRoot,
-  CompoundLexType,
-  LexType,
-} from "../structure/xBar";
+import { shellLex } from "../shell/shell_lexicon";
+import { LexRoot } from "../structure/semantic_type";
+import { Lexicon, XBar } from "../structure/xBar";
 import { NaturalParser } from "../tools/parser";
 import { multi_test } from "../tools/tester";
 
-const testLex = new Lexicon();
-
-testLex.add(
-  "Say",
-  new XBar(
-    (theme: (lex: Lexicon) => { get: () => string }) => (lex: Lexicon) => {
-      console.log(theme(lex).get().toString());
-    },
-    new CompoundLexType(
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable),
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
-    ),
-    "Say"
-  )
-);
-
-testLex.add(
-  "Save",
-  new XBar(
-    (value: (lex: Lexicon) => { get: () => unknown; type: LexType }) =>
-      (destination: { get: () => string }) =>
-      (lex: Lexicon) => {
-        lex.add(
-          destination.get(),
-          new XBar(
-            { value: value(lex).get() },
-            LexRoot.ValueObject(value(lex).type),
-            destination.get()
-          )
-        );
-      },
-    new CompoundLexType(
-      new CompoundLexType(LexRoot.Lexicon, LexRoot.Stringable),
-      new CompoundLexType(
-        LexRoot.Stringable,
-        new CompoundLexType(LexRoot.Lexicon, LexRoot.Void)
-      )
-    ),
-    "Save"
-  )
-);
-
-testLex.add(
-  "Bark",
-  new XBar(
-    () => console.log("Woof!"),
-    new CompoundLexType(LexRoot.Lexicon, LexRoot.Void),
-    "Bark"
-  )
-);
+const testLex = new Lexicon(shellLex);
 
 testLex.add(
   "TestVariable",
@@ -93,6 +40,13 @@ multi_test(
       "Save 2 as the value of myNewVariable. Say the value of myNewVariable.",
       ["2", "FINISHED"],
     ],
+  ],
+  sentenceTest
+);
+
+multi_test(
+  "For Loops",
+  [
     [
       "Save 5 as the value of fiveVar. Say the value of fiveVar the value of fiveVar times.",
       ["5", "5", "5", "5", "5", "FINISHED"],
@@ -100,6 +54,10 @@ multi_test(
     [
       "Save 5 as the value of fiveVar. Say the value of fiveVar 5 times.",
       ["5", "5", "5", "5", "5", "FINISHED"],
+    ],
+    [
+      "For each character in 'hello': Say character's value.",
+      ["h", "e", "l", "l", "o", "FINISHED"],
     ],
   ],
   sentenceTest

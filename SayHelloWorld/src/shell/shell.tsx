@@ -7,9 +7,15 @@ import { Lexicon } from "../structure/xBar";
 
 function Shell() {
   type historyItem = { command: string; results: string[]; error: boolean };
+
+  // Tracks all of the previous commands and their outputs.
   const [commandHistory, setHistory] = useState([] as historyItem[]);
+  // Keeps track of arrow key command selection height.
   const [currentCommandHeight, modifyCommandHeight] = useState(-1);
+  // Holds onto the local scope lexicon.
   const [localLex, changeLocalLex] = useState(new Lexicon(shellLex));
+
+  // Element refs for modifying the shell history and command line.
   const shellHistoryElement = useRef<HTMLDivElement>(
     null as unknown as HTMLDivElement
   );
@@ -17,10 +23,12 @@ function Shell() {
     null as unknown as HTMLTextAreaElement
   );
 
+  // Changes the current shell command line to contain an old command.
   function setToOldCommand(newHeight: number) {
     shellInputElement.current.value =
       newHeight == -1 ? "" : commandHistory[newHeight].command;
   }
+  // Modifies the commandHeight based on arrow key inputs.
   function keyDownChecker(event: KeyboardEvent) {
     switch (event.key) {
       case "ArrowUp": {
@@ -41,6 +49,8 @@ function Shell() {
     }
   }
 
+  // Checks to see if a new command is done being entered and
+  // if so, executes the command.
   function valueChange(event: FormEvent<HTMLTextAreaElement>) {
     switch ((event.nativeEvent as InputEvent).inputType) {
       case "insertText":
@@ -60,6 +70,8 @@ function Shell() {
       }
     }
 
+    // Uses the parser to evaluate the latest command.
+    // Includes a couple of hard commands that clear or reset the shell.
     function executeCommand(history: historyItem) {
       console.log(`Executing: ${history.command}`);
       if (history.command.toLowerCase() == "clear.") {
