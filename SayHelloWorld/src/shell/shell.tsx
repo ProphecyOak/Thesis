@@ -3,7 +3,8 @@ import "./Shell.css";
 import { captureOutput } from "../tools/tester";
 import { NaturalParser } from "../tools/parser";
 import { shellLex } from "./shell_lexicon";
-import { Lexicon } from "../structure/xBar";
+import { Lexicon, XBar } from "../structure/xBar";
+import { getPrintableTree } from "../tools/tree_printer";
 
 function Shell() {
   type historyItem = { command: string; results: string[]; error: boolean };
@@ -14,6 +15,8 @@ function Shell() {
   const [currentCommandHeight, modifyCommandHeight] = useState(-1);
   // Holds onto the local scope lexicon.
   const [localLex, changeLocalLex] = useState(new Lexicon(shellLex));
+
+  const [showTree, changeShowTree] = useState(false);
 
   // Element refs for modifying the shell history and command line.
   const shellHistoryElement = useRef<HTMLDivElement>(
@@ -47,6 +50,10 @@ function Shell() {
         break;
       }
     }
+  }
+
+  function toggleTreeDisplay() {
+    changeShowTree(showTree.valueOf());
   }
 
   // Checks to see if a new command is done being entered and
@@ -92,7 +99,11 @@ function Shell() {
             history.command,
             localLex,
             NaturalParser.parserRules.PARAGRAPH
-          ).forEach((x) => x.run(localLex)),
+          ).forEach((x) => {
+            if (showTree.valueOf())
+              console.log(getPrintableTree(x, XBar.toTree));
+            return x.run(localLex);
+          }),
         false,
         true
       );
@@ -108,6 +119,7 @@ function Shell() {
               {`>>> ${history.command}`}
               {history.results.map((output: string, outputIndex: number) => (
                 <div
+                  style={{ whiteSpace: "pre-wrap" }}
                   key={`command-output-${index}-${outputIndex}`}
                   className={history.error ? "errorOutput" : ""}
                 >{`${output}\n`}</div>
@@ -125,6 +137,10 @@ function Shell() {
             onKeyDown={keyDownChecker}
           ></textarea>
         </div>
+      </div>
+      <div id="treeToggle">
+        Show Trees
+        <input type="checkbox" onToggle={toggleTreeDisplay}></input>
       </div>
     </>
   );

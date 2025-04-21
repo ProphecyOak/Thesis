@@ -2,10 +2,15 @@ body {
   --bgCol1: rgb(30, 30, 42);
   --bgCol2: rgb(0, 0, 0);
   --bgCol: var(--bgCol2);
+
   --textCol1: rgb(129, 170, 164);
   --textCol2: rgb(88, 233, 52);
   --textCol: var(--textCol2);
+
   --errorCol: rgb(205, 75, 32);
+
+  --toggleCol: rgb(102, 152, 89);
+
   background-color: var(--bgCol);
   color: var(--textCol);
 

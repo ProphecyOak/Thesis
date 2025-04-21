@@ -77,6 +77,15 @@ interface ILex {
   // Returns whether the current scope or any parent scope
   // contains an entry for the given symbol.
   has(symbol: string): boolean;
+
+  // Modifies an existing variable if possible otherwise creates it.
+  modify(
+    symbol: string,
+    property: string,
+    value: unknown,
+    type: SemanticType
+  ): void;
+  get entries(): string[];
 }
 
 // An empty lexicon only used for the base case of checking the parent scope.
@@ -90,12 +99,18 @@ const emptyLex: ILex = {
   has: function (): boolean {
     return false;
   },
+  modify: function (): void {
+    throw new Error("Variable cannot be modified in a null parent.");
+  },
+  get entries() {
+    return [] as string[];
+  },
 };
 
 // The main lexicon class.
 export class Lexicon implements ILex {
   private _parent?: ILex;
-  private entries = new Map<string, XBar>();
+  private _entries = new Map<string, XBar>();
 
   // A getter that returns the empty lex for the highest level scope.
   get parent() {
@@ -107,19 +122,47 @@ export class Lexicon implements ILex {
     this._parent = parent;
   }
 
+  get entries() {
+    return Array.from(this._entries.keys()).concat(this.parent.entries);
+  }
+
+  modify(
+    symbol: string,
+    property: string,
+    value: unknown,
+    type?: SemanticType
+  ): void {
+    if (this.has(symbol)) {
+      (this.lookup(symbol).value as Map<string, unknown>).set(property, value);
+    } else {
+      if (type == undefined)
+        throw new Error(
+          `Missing type for previously undeclared variable ${symbol}`
+        );
+      this.add(
+        symbol,
+        new XBar(
+          new Map<string, unknown>([["value", value]]),
+          LexRoot.ValueObject(type),
+          symbol
+        )
+      );
+    }
+  }
+
   has(symbol: string): boolean {
     symbol = symbol.toLowerCase();
-    return this.entries.has(symbol) || this.parent.has(symbol);
+    return this._entries.has(symbol) || this.parent.has(symbol);
   }
 
   lookup(symbol: string): XBar {
     symbol = symbol.toLowerCase();
-    if (this.entries.has(symbol)) return this.entries.get(symbol)!;
+    if (this._entries.has(symbol)) return this._entries.get(symbol)!;
     return this.parent.lookup(symbol);
   }
 
   add(symbol: string, value: XBar): void {
     symbol = symbol.toLowerCase();
-    this.entries.set(symbol, value);
+    this._entries.set(symbol, value);
   }
 }

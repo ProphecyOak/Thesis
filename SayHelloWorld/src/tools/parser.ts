@@ -20,7 +20,11 @@ import {
   Token,
 } from "typescript-parsec";
 import { Lexicon, XBar } from "../structure/xBar";
-import { CompoundSemanticType, LexRoot } from "../structure/semantic_type";
+import {
+  CompoundSemanticType,
+  LexRoot,
+  ObjectSemanticType,
+} from "../structure/semantic_type";
 
 // List of different tokenkinds to be regex'd
 export enum TokenKind {
@@ -159,19 +163,19 @@ NaturalParser.setPattern(
           punctuationMark.text
         );
     }),
-    kright(
-      seq(str(":"), opt_sc(str(" "))),
-      apply(
-        parserRules.SENTENCE,
-        (sentence: PreLexXBar) => () =>
-          new XBar(
-            (lex: Lexicon) => sentence(lex),
-            new CompoundSemanticType(
-              LexRoot.Lexicon,
-              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
-            )
-          )
-      )
+    apply(
+      kright(seq(str(":"), opt_sc(str(" "))), parserRules.SENTENCE),
+      (sentence: PreLexXBar) => () =>
+        new XBar(
+          (lex: Lexicon) => {
+            return sentence(lex);
+          },
+          new CompoundSemanticType(
+            LexRoot.Lexicon,
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+          ),
+          ":"
+        )
     )
   )
 );
@@ -270,8 +274,8 @@ addFrame(
           const definedWord = lex.lookup(word.symbol);
           return XBar.createParent(
             new XBar(
-              (valueObj: { value: unknown }) => () => ({
-                get: () => valueObj.value,
+              (valueObj: Map<string, unknown>) => () => ({
+                get: () => valueObj.get("value"),
               }),
               new CompoundSemanticType(
                 definedWord.type,
@@ -292,14 +296,14 @@ addFrame(
           const definedWord = lex.lookup(word.symbol);
           return XBar.createParent(
             new XBar(
-              (valueObj: { value: unknown }) => () => ({
-                get: () => valueObj.value,
+              (valueObj: Map<string, unknown>) => () => ({
+                get: () => valueObj.get("value"),
               }),
               new CompoundSemanticType(
                 definedWord.type,
                 new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
               ),
-              `'s ${property.symbol}`
+              `${property.symbol} of`
             ),
             definedWord
           );
@@ -316,15 +320,59 @@ addFrame(
       alt(variableValuePattern, variablePossesivePattern)
     ),
     ([word, property]: [SentenceToken, SentenceToken]) =>
-      () => {
-        return new XBar(
+      () =>
+        new XBar(
           {
             get: () => word.symbol,
           },
           LexRoot.String,
-          `as the ${property} of ${word.symbol}`
-        );
-      }
+          `as the ${property.symbol} of ${word.symbol}`
+        )
+  )
+);
+
+addFrame(
+  "To Variable",
+  apply(
+    kright(
+      seq(str("to"), str(" ")),
+      alt(variableValuePattern, variablePossesivePattern)
+    ),
+    ([word, property]: [SentenceToken, SentenceToken]) =>
+      () =>
+        new XBar(
+          (
+              fx: (
+                secondArg: (lex: Lexicon) => { get: () => string | number }
+              ) => (lex: Lexicon) => string | number
+            ) =>
+            (lex: Lexicon) => {
+              lex.modify(
+                word.symbol,
+                property.symbol,
+                fx((lex: Lexicon) => {
+                  const variable = lex.lookup(word.symbol) as XBar;
+                  return {
+                    get: () =>
+                      (variable.value as Map<string, string | number>).get(
+                        "value"
+                      )!,
+                    type: (variable.type as ObjectSemanticType).types.get(
+                      "value"
+                    ),
+                  };
+                })(lex)
+              );
+            },
+          new CompoundSemanticType(
+            new CompoundSemanticType(
+              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable),
+              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
+            ),
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+          ),
+          `to the ${property.symbol} of ${word.symbol}`
+        )
   )
 );
 
@@ -460,19 +508,26 @@ NaturalParser.setPattern(
   apply(
     rep_sc(kleft(parserRules.SENTENCE, opt_sc(str(" ")))),
     (sentences: PreLexXBar[]) => {
-      return (lex: Lexicon) =>
-        new XBar(
+      return (lex: Lexicon) => {
+        const lexedSentences: XBar[] = [];
+        const outXBar = new XBar(
           sentences.reduce(
             (acc: () => void, e: PreLexXBar) => {
               return () => {
                 acc();
-                e(lex).run(lex);
+                lexedSentences.push(e(lex));
+                lexedSentences[lexedSentences.length - 1].run(lex);
               };
             },
             () => null
           ),
           new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
         );
+        outXBar.children = lexedSentences;
+        return outXBar;
+      };
     }
   )
 );
+
+// TODO: PLUS FRAME

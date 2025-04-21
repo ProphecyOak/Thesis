@@ -8,7 +8,11 @@ const testLex = new Lexicon(shellLex);
 
 testLex.add(
   "TestVariable",
-  new XBar({ value: 34 }, LexRoot.ValueObject(LexRoot.Number), "TestVariable")
+  new XBar(
+    new Map<string, unknown>([["value", 34]]),
+    LexRoot.ValueObject(LexRoot.Number),
+    "TestVariable"
+  )
 );
 
 function sentenceTest(text: string) {
@@ -35,6 +39,7 @@ multi_test(
   "Variables",
   [
     ["Say the value of TestVariable.", ["34", "FINISHED"]],
+    ["Say TestVariable's value.", ["34", "FINISHED"]],
     ["Save 'stuff' as the value of theStringVariable.", ["FINISHED"]],
     [
       "Save 2 as the value of myNewVariable. Say the value of myNewVariable.",
@@ -56,8 +61,35 @@ multi_test(
       ["5", "5", "5", "5", "5", "FINISHED"],
     ],
     [
+      "For each character in 'hello': bark.",
+      ["Woof!", "Woof!", "Woof!", "Woof!", "Woof!", "FINISHED"],
+    ],
+    [
+      "For each character in 'hello': Say 'boop'.",
+      ["boop", "boop", "boop", "boop", "boop", "FINISHED"],
+    ],
+    [
       "For each character in 'hello': Say character's value.",
       ["h", "e", "l", "l", "o", "FINISHED"],
+    ],
+    [
+      "For each character in 'aa': for each item in \"bob\": Say item's value.",
+      ["b", "o", "b", "b", "o", "b", "FINISHED"],
+    ],
+  ],
+  sentenceTest
+);
+
+multi_test(
+  "Math",
+  [
+    [
+      "Save 3 as myValue's value. Add 2 to myValue's value. Say myValue's value.",
+      ["5", "FINISHED"],
+    ],
+    [
+      "Save 3 as myValue's value. Add 2 to myValue's value 5 times. Say myValue's value.",
+      ["13", "FINISHED"],
     ],
   ],
   sentenceTest

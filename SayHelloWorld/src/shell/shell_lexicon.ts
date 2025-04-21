@@ -40,13 +40,13 @@ shellLex.add(
     (value: (lex: Lexicon) => { get: () => unknown; type: SemanticType }) =>
       (destination: { get: () => string }) =>
       (lex: Lexicon) => {
-        lex.add(
-          destination.get(),
-          new XBar(
-            { value: value(lex).get() },
-            LexRoot.ValueObject(value(lex).type),
-            destination.get()
-          )
+        const variableName = destination.get();
+        const variableValue = value(lex);
+        lex.modify(
+          variableName,
+          "value",
+          variableValue.get(),
+          variableValue.type
         );
       },
     new CompoundSemanticType(
@@ -80,7 +80,8 @@ shellLex.add(
   )
 );
 
-// TODO "For" Definition
+// TODO Make for loops nestable
+
 type myIterable = Array<string>;
 shellLex.add(
   "For",
@@ -91,18 +92,18 @@ shellLex.add(
       (lex: Lexicon) => {
         const iteratorName = iterator.get();
         const smallLex = new Lexicon(lex);
-        iterable.get().forEach((element: string) => {
-          smallLex.add(
-            iteratorName,
-            new XBar(
-              () => ({
-                get: () => element,
-              }),
-              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.String),
-              `${element}`
-            )
-          );
-          task(smallLex).run(smallLex);
+        const iterableValues = iterable.get();
+        smallLex.modify(
+          iteratorName,
+          "value",
+          iterableValues[0],
+          LexRoot.String
+        );
+        const LexedTask = task(smallLex);
+        iterableValues.forEach((element: string) => {
+          smallLex.modify(iteratorName, "value", element, LexRoot.String);
+          // console.log(getPrintableTree(LexedTask, XBar.toTree));
+          LexedTask.run(smallLex);
         });
       },
     new CompoundSemanticType(
@@ -119,5 +120,32 @@ shellLex.add(
       )
     ),
     "For"
+  )
+);
+
+function addHelper(a: unknown, b: unknown) {
+  if (typeof a == "string" && typeof b == "string") return a + b;
+  if (typeof a == "number" && typeof b == "number") return a + b;
+  throw new Error(`Sorry, but '${typeof a}' cannot be added to ${typeof b}`);
+}
+
+shellLex.add(
+  "Add",
+  new XBar(
+    (firstArg: (lex: Lexicon) => { get: () => unknown; type: SemanticType }) =>
+      (
+        secondArg: (lex: Lexicon) => { get: () => unknown; type: SemanticType }
+      ) =>
+      (lex: Lexicon) => {
+        return addHelper(firstArg(lex).get(), secondArg(lex).get());
+      },
+    new CompoundSemanticType(
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable),
+      new CompoundSemanticType(
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable),
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
+      )
+    ),
+    "Add"
   )
 );

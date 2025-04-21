@@ -1,5 +1,5 @@
 #shellDiv {
-  width: 800px;
+  width: 1000px;
   margin: auto;
   margin-top: 30px;
   border: solid;
@@ -44,4 +44,11 @@
 
 .errorOutput {
   color: var(--errorCol);
+}
+
+#treeToggle {
+  height: 20px;
+  background: var(--textCol);
+  border: 0;
+  color: black;
 }
