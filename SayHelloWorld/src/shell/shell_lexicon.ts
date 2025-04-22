@@ -64,7 +64,7 @@ shellLex.add(
 shellLex.add(
   "True",
   new XBar(
-    () => ({ get: () => true }),
+    () => ({ get: () => true, type: LexRoot.Boolean }),
     new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
     "True"
   )
@@ -74,13 +74,13 @@ shellLex.add(
 shellLex.add(
   "False",
   new XBar(
-    () => ({ get: () => false }),
+    () => ({ get: () => false, type: LexRoot.Boolean }),
     new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
     "False"
   )
 );
 
-// TODO Make for loops nestable
+// TODO Make FOR loops nestable
 
 type myIterable = Array<string>;
 shellLex.add(
@@ -149,3 +149,30 @@ shellLex.add(
     "Add"
   )
 );
+
+shellLex.add(
+  "If",
+  new XBar(
+    (condition: (lex: Lexicon) => { get: () => boolean }) =>
+      (task: (lex: Lexicon) => XBar) =>
+      (lex: Lexicon) => {
+        const lexedTask = task(lex);
+        return condition(lex).get() ? lexedTask.run(lex) : () => null;
+      },
+    new CompoundSemanticType(
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
+      new CompoundSemanticType(
+        new CompoundSemanticType(
+          LexRoot.Lexicon,
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+        ),
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+      )
+    ),
+    "If"
+  )
+);
+
+// FIXME nested loops etc NOTES
+// all seem to have to do with the colon definition.
+// Calling task(lex) seems to be causing a problem.

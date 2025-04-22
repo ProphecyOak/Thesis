@@ -94,3 +94,9 @@ multi_test(
   ],
   sentenceTest
 );
+
+multi_test(
+  "Conditionals",
+  [["If true: say 2.", ["2", "FINISHED"]]],
+  sentenceTest
+);

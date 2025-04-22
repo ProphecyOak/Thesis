@@ -73,6 +73,8 @@ function Shell() {
         setHistory([newHistory].concat(commandHistory));
         shellInputElement.current.value = "";
         executeCommand(newHistory);
+        modifyCommandHeight(-1);
+        setToOldCommand(-1);
         break;
       }
     }
