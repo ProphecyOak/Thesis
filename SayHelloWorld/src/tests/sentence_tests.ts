@@ -100,6 +100,7 @@ multi_test(
   [
     ["If true: say 2.", ["2", "FINISHED"]],
     ["If 2 is 2: bark.", ["Woof!", "FINISHED"]],
+    ["bark if 2 is 2.", ["Woof!", "FINISHED"]],
   ],
   sentenceTest
 );

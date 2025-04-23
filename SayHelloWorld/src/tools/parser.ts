@@ -6,7 +6,6 @@ import {
   combine,
   expectEOF,
   expectSingleResult,
-  fail,
   kleft,
   kright,
   opt_sc,
@@ -379,34 +378,22 @@ addFrame(
 addFrame(
   "X Times",
   apply(
-    alt(
-      combine(parserRules.NUMBER, (value: SentenceToken) => {
-        if (value.symbol.includes("."))
-          return fail("You cannot loop a non-integer number of times.");
-        return apply(
-          seq(str(" "), str("times")),
-          () => () =>
-            new XBar(
-              () => ({
-                get: () => Number(value.symbol),
-                type: LexRoot.Number,
-              }),
-              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Number),
-              value.symbol
-            )
+    apply(
+      kleft(
+        alt(
+          frames.get("The Value Of")!.pattern,
+          frames.get("Literal")!.pattern
+        ),
+        seq(str(" "), str("times"))
+      ),
+      (oldValue: PreLexXBar) => (lex: Lexicon) => {
+        const lexedBar = oldValue(lex);
+        return new XBar(
+          lexedBar.value,
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Number),
+          lexedBar.symbol
         );
-      }),
-      apply(
-        kleft(frames.get("The Value Of")!.pattern, seq(str(" "), str("times"))),
-        (oldValue: PreLexXBar) => (lex: Lexicon) => {
-          const lexedBar = oldValue(lex);
-          return new XBar(
-            lexedBar.value,
-            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Number),
-            lexedBar.symbol
-          );
-        }
-      )
+      }
     ),
     (iterationCount: PreLexXBar) => (lex: Lexicon) =>
       XBar.createParent(
@@ -511,6 +498,39 @@ addFrame(
         boolXBar.children = [XBar1, XBar2];
         return boolXBar;
       }
+  )
+);
+
+addFrame(
+  "Trailing Conditional",
+  apply(
+    kright(
+      seq(str("if"), str(" ")),
+      alt(
+        frames.get("The Value Of")!.pattern,
+        frames.get("Literal")!.pattern,
+        frames.get("Is (Equality)")!.pattern
+      )
+    ),
+    (condition: PreLexXBar) => (lex: Lexicon) =>
+      XBar.createParent(
+        condition(lex),
+        new XBar(
+          (value: (lex: Lexicon) => { get: () => boolean }) =>
+            (phrase: (_lex: Lexicon) => void) =>
+            (lex: Lexicon) => {
+              if (value(lex).get()) phrase(lex);
+            },
+          new CompoundSemanticType(
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
+            new CompoundSemanticType(
+              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
+              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+            )
+          ),
+          "times"
+        )
+      )
   )
 );
 
