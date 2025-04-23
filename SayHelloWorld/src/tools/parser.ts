@@ -164,15 +164,10 @@ NaturalParser.setPattern(
     }),
     apply(
       kright(seq(str(":"), opt_sc(str(" "))), parserRules.SENTENCE),
-      (sentence: PreLexXBar) => () =>
+      (sentence: PreLexXBar) => (lex: Lexicon) =>
         new XBar(
-          (lex: Lexicon) => {
-            return sentence(lex);
-          },
-          new CompoundSemanticType(
-            LexRoot.Lexicon,
-            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
-          ),
+          sentence(lex).value,
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
           ":"
         )
     )
@@ -427,7 +422,7 @@ addFrame(
           get: () => word.symbol,
         },
         LexRoot.String,
-        `each ${word.symbol}`
+        `each ${word.symbol} in`
       );
     }
   )
@@ -500,6 +495,8 @@ addFrame(
       }
   )
 );
+
+// TODO: PLUS FRAME
 
 addFrame(
   "Trailing Conditional",
@@ -585,5 +582,3 @@ NaturalParser.setPattern(
     }
   )
 );
-
-// TODO: PLUS FRAME

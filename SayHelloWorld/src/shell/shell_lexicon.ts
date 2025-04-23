@@ -88,7 +88,7 @@ shellLex.add(
   new XBar(
     (iterator: { get: () => string }) =>
       (iterable: { get: () => myIterable }) =>
-      (task: (lex: Lexicon) => XBar) =>
+      (task: (lex: Lexicon) => void) =>
       (lex: Lexicon) => {
         const iteratorName = iterator.get();
         const smallLex = new Lexicon(lex);
@@ -99,22 +99,22 @@ shellLex.add(
           iterableValues[0],
           LexRoot.String
         );
-        const LexedTask = task(smallLex);
-        iterableValues.forEach((element: string) => {
-          smallLex.modify(iteratorName, "value", element, LexRoot.String);
-          // console.log(getPrintableTree(LexedTask, XBar.toTree));
-          LexedTask.run(smallLex);
-        });
+        for (let i = 0; i < iterableValues.length; i++) {
+          smallLex.modify(
+            iteratorName,
+            "value",
+            iterableValues[i],
+            LexRoot.String
+          );
+          task(smallLex);
+        }
       },
     new CompoundSemanticType(
       LexRoot.String,
       new CompoundSemanticType(
         LexRoot.Iterable,
         new CompoundSemanticType(
-          new CompoundSemanticType(
-            LexRoot.Lexicon,
-            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
-          ),
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
           new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
         )
       )
@@ -154,18 +154,14 @@ shellLex.add(
   "If",
   new XBar(
     (condition: (lex: Lexicon) => { get: () => boolean }) =>
-      (task: (lex: Lexicon) => XBar) =>
+      (task: (lex: Lexicon) => void) =>
       (lex: Lexicon) => {
-        const lexedTask = task(lex);
-        return condition(lex).get() ? lexedTask.run(lex) : () => null;
+        return condition(lex).get() ? task(lex) : () => null;
       },
     new CompoundSemanticType(
       new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
       new CompoundSemanticType(
-        new CompoundSemanticType(
-          LexRoot.Lexicon,
-          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
-        ),
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
         new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
       )
     ),
