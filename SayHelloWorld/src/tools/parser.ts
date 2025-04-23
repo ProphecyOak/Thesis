@@ -148,6 +148,19 @@ NaturalParser.setPattern(
     })
   )
 );
+
+function memo<T>(fx: () => T) {
+  let resolved = false;
+  let result: T;
+  return () => {
+    if (!resolved) {
+      result = fx();
+    }
+    resolved = true;
+    return result;
+  };
+}
+
 NaturalParser.setPattern(
   parserRules.PUNCTUATION,
   alt(
@@ -164,10 +177,13 @@ NaturalParser.setPattern(
     }),
     apply(
       kright(seq(str(":"), opt_sc(str(" "))), parserRules.SENTENCE),
-      (sentence: PreLexXBar) => (lex: Lexicon) =>
+      (sentence: PreLexXBar) => () =>
         new XBar(
-          sentence(lex).value,
-          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
+          (lex: Lexicon) => memo(() => sentence(lex).value)(),
+          new CompoundSemanticType(
+            LexRoot.Lexicon,
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+          ),
           ":"
         )
     )
@@ -189,10 +205,10 @@ function composeEmAll(
 ): PreLexXBar {
   return (lex: Lexicon) => {
     let outXBar = lex.lookup(verb.symbol);
-    let newArg = verbArgs.shift();
-    while (newArg != undefined) {
-      outXBar = XBar.createParent(outXBar, newArg!(lex));
-      newArg = verbArgs.shift();
+    let i = 0;
+    while (i < verbArgs.length) {
+      outXBar = XBar.createParent(outXBar, verbArgs[i](lex));
+      i++;
     }
     outXBar = XBar.createParent(outXBar, punctuation(lex));
     return outXBar;

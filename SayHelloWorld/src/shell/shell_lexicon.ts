@@ -80,15 +80,13 @@ shellLex.add(
   )
 );
 
-// TODO Make FOR loops nestable
-
 type myIterable = Array<string>;
 shellLex.add(
   "For",
   new XBar(
     (iterator: { get: () => string }) =>
       (iterable: { get: () => myIterable }) =>
-      (task: (lex: Lexicon) => void) =>
+      (task: (lex: Lexicon) => (lex: Lexicon) => void) =>
       (lex: Lexicon) => {
         const iteratorName = iterator.get();
         const smallLex = new Lexicon(lex);
@@ -99,6 +97,7 @@ shellLex.add(
           iterableValues[0],
           LexRoot.String
         );
+        const lexedTask = task(smallLex);
         for (let i = 0; i < iterableValues.length; i++) {
           smallLex.modify(
             iteratorName,
@@ -106,7 +105,7 @@ shellLex.add(
             iterableValues[i],
             LexRoot.String
           );
-          task(smallLex);
+          lexedTask(smallLex);
         }
       },
     new CompoundSemanticType(
@@ -114,7 +113,10 @@ shellLex.add(
       new CompoundSemanticType(
         LexRoot.Iterable,
         new CompoundSemanticType(
-          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
+          new CompoundSemanticType(
+            LexRoot.Lexicon,
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+          ),
           new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
         )
       )
@@ -154,21 +156,20 @@ shellLex.add(
   "If",
   new XBar(
     (condition: (lex: Lexicon) => { get: () => boolean }) =>
-      (task: (lex: Lexicon) => void) =>
+      (task: (lex: Lexicon) => (lex: Lexicon) => void) =>
       (lex: Lexicon) => {
-        return condition(lex).get() ? task(lex) : () => null;
+        return condition(lex).get() ? task(lex)(lex) : () => null;
       },
     new CompoundSemanticType(
       new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
       new CompoundSemanticType(
-        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
+        new CompoundSemanticType(
+          LexRoot.Lexicon,
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+        ),
         new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
       )
     ),
     "If"
   )
 );
-
-// FIXME nested loops etc NOTES
-// all seem to have to do with the colon definition.
-// Calling task(lex) seems to be causing a problem.
