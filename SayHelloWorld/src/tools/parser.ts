@@ -478,6 +478,42 @@ addFrame(
   )
 );
 
+addFrame(
+  "Is (Equality)",
+  apply(
+    seq(
+      kleft(
+        alt(
+          frames.get("The Value Of")!.pattern,
+          frames.get("Literal")!.pattern
+        ),
+        seq(str(" "), str("is"), str(" "))
+      ),
+      alt(frames.get("The Value Of")!.pattern, frames.get("Literal")!.pattern)
+    ),
+    ([value1, value2]: [PreLexXBar, PreLexXBar]) =>
+      (lex: Lexicon) => {
+        const XBar1 = value1(lex);
+        const XBar2 = value2(lex);
+        const boolXBar = new XBar(
+          () => ({
+            get: () =>
+              (XBar1.value as (lex: Lexicon) => { get: () => unknown })(
+                lex
+              ).get() ==
+              (XBar2.value as (lex: Lexicon) => { get: () => unknown })(
+                lex
+              ).get(),
+          }),
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
+          `${XBar1.symbol} == ${XBar2.symbol}`
+        );
+        boolXBar.children = [XBar1, XBar2];
+        return boolXBar;
+      }
+  )
+);
+
 const altFrame = (() => {
   const argFrames = Array.from(frames.values()).map(
     (value: Frame) => value.pattern

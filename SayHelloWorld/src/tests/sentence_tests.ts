@@ -97,6 +97,9 @@ multi_test(
 
 multi_test(
   "Conditionals",
-  [["If true: say 2.", ["2", "FINISHED"]]],
+  [
+    ["If true: say 2.", ["2", "FINISHED"]],
+    ["If 2 is 2: bark.", ["Woof!", "FINISHED"]],
+  ],
   sentenceTest
 );
