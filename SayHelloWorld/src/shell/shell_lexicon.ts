@@ -80,6 +80,9 @@ shellLex.add(
   )
 );
 
+// TODO use Memoized For Loops (notes)
+// Might need to do in composeEmAll
+
 type myIterable = Array<string>;
 shellLex.add(
   "For",

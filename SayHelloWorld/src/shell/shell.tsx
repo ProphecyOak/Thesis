@@ -52,6 +52,7 @@ function Shell() {
     }
   }
 
+  // FIXME showTreeDisplay not working
   function toggleTreeDisplay() {
     changeShowTree(showTree.valueOf());
   }

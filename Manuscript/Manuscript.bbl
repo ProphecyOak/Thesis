@@ -1,0 +1,28 @@
+\begin{thebibliography}{}
+
+\bibitem[Ballard and Biermann, 1979]{Ballard1979ProgrammingIN}
+Ballard, B. and Biermann, A. (1979).
+\newblock Programming in natural language: “nlc” as a prototype.
+\newblock pages 228--237.
+
+\bibitem[Fu et~al., 2023]{Fu2023SecurityWO}
+Fu, Y., Liang, P., Tahir, A., Li, Z., Shahin, M., Yu, J., and Chen, J. (2023).
+\newblock Security weaknesses of copilot-generated code in github projects: An
+  empirical study.
+\newblock {\em ACM Transactions on Software Engineering and Methodology}.
+
+\bibitem[Knöll and Mezini, 2006]{Knöll2006PegasusFS}
+Knöll, R. and Mezini, M. (2006).
+\newblock Pegasus: first steps toward a naturalistic programming language.
+\newblock pages 542--559.
+
+\bibitem[Liu and Lieberman, 2005]{Liu2005MetaforVS}
+Liu, H. and Lieberman, H. (2005).
+\newblock {\em Metafor: visualizing stories as code}.
+
+\bibitem[Marneffe et~al., 2006]{Marneffe2006GeneratingTD}
+Marneffe, M., MacCartney, B., and Manning, C.~D. (2006).
+\newblock Generating typed dependency parses from phrase structure parses.
+\newblock pages 449--454.
+
+\end{thebibliography}
