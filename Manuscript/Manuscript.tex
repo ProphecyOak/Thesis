@@ -88,7 +88,6 @@ Another approach I discovered was Pegasus \cite{Knöll2006PegasusFS}. Pegasus us
 
 Pegasus and Metafor are closer to natural language than other programming languages in terms of their understanding of the input text. However other attempts simply merely try to mimic the appearance of natural language without the computer truly understanding the underlying linguistic phenomena the way Pegasus or Metaphor might. There have been many other examples of natural language approaching languages (multiple of which are listed in Knöll \& Mezini). Some of these experiments had interesting ideas applicable to my project. A handful of them allow for fluffy constructions like “I would like …” or “Please …” These increase the flexibility. Also, the ability to store the inflections of various words and assign specific meanings to them is very interesting. Not all of these features were feasible to add, but some more fundamental pieces like alternate grammatical frames and a semblance of real semantic composition make \langName{} more like English than many standard programming languages.
 
-\newpage{}
 \section*{Goals}
 The goals of \langName{} could be grouped into a few key groups: computational expressivity, natural language freedom, and linguistic fidelity. Balancing these three factors became a constant tug of war. Compromises had to be made in many places, but this push and pull of these three domains kept \langName{} focused on its true objective---becoming a programming language that looks like a natural language.
 
@@ -103,7 +102,6 @@ This goal is the crux of the project. Users should have as much freedom with the
 \subsection*{Linguistic Fidelity}
 The last major goal was to incorporate as much real linguistic theory as possible to allow for increased language freedom and to offer a strong base for the parsing strategies \langName{} employs. This goal is actually really important when trying to work with the first two. To allow for language freedom, I could have implemented a large number of manually created frames for all sorts of operations, but this would not be scalable and would make the computational expressivity limited to whatever those frames did. My actual approach leverages the lambda-calculus nature of natural language semantics to allow for exceptionally expressive sentences that are very English-like.
 
-\newpage{}
 \section*{Planning}
 Creating \langName{} has been a long and storied process with many ups and downs. The first step, as with many projects, is researching what others have done in the field. As mentioned earlier, the history of natural-looking languages is an eventful one. Starting with the advent of programming languages, programmers quickly began to bridge the computer-human communication gap. NLC is an unimplemented language designed by Bruce Ballard and Alan Biermann \cite{Ballard1979ProgrammingIN}. Their paper outlines a compelling argument for components a natural looking programming language needs and the types of data that such a language should be able to handle. Their model included a scanner, a parser, a semantic engine, and a matrix computer. \langName{} has the first three of these pieces as well. I utilize the ts-parsec library's built-in lexer and parser tools to tokenize the incoming sentences and then generate a pseudo-syntax tree. I can then run the top node of the tree and it will compose the meanings from across the syntax trees.
 
@@ -130,7 +128,6 @@ Parser combinators are a strategy for building a parser out of small functions \
 
 The last decision I had to make before creating the final implementation was which language to write in. I had started this project with Python to roughly throw some ideas at the wall. Getting deeper into the weeds led me to consider a statically typed language moving forwards. This would lead to more understandable code and less technical debt. For these reasons I decided to use TypeScript. This came with the added benefit of being able to use the React framework to create a streamlined and useful user interface. 
 
-\newpage{}
 \section*{Product}
 \subsection*{The Lexer}
 The first layer of the \langName{} architecture is the lexer. This is a tool built using the ts-parsec library that groups the characters in the input into useful chunks. For my language, this meant words, numbers, and punctuation. Once I had these pieces I could further process them using the parser layer.
@@ -197,7 +194,6 @@ The shell's lexicon contains the verb definitions. A child lexicon is created wi
 
 At any given point, you have access to the current lexicon. Some functions like "For" will send you into a child lexicon and then have you discard it afterwards. When referencing a verb or variable, the code will find the lowest version of that symbol in the current scope hierarchy. In this example, "Say" is only found at the top level, but when "character" is referenced, it only needs to go up one level.
 
-\newpage{}
 \section*{Discussion}
 \langName{} is a complicated network of different systems that leverage computer science and linguistic principles and it fulfills my three core goals. First, with the inclusion of while loops, if statements, and variables, \langName{} is Turing complete. Meaning it satisfies the computational expressivity requirement. The deeply involved parser structure allows for the natural language freedom and helps facilitate the XBar system which in turn maintains linguistic fidelity. So, all the goals are accomplished. What makes this project useful?
 
