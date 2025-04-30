@@ -9,7 +9,10 @@
 \documentclass[titlepage]{article}
 \usepackage{graphicx} % Required for inserting images
 \usepackage{setspace} % Used to set double spacing
-\usepackage[margin=1in]{geometry} % Sets Margins to 1 inch
+\usepackage[margin=1in]{geometry} % Sets margins to 1 inch
+\usepackage{ textcomp } % Angle brackets
+\usepackage{tikz} % For diagrams
+\usepackage{wrapfig} % For wrapping around figures
 
 % CODE BLOCK DEFINITIONS
 \usepackage{listings}
@@ -41,11 +44,11 @@
 \begin{document}
 % TITLE PAGE
 \maketitle
-\newpage
 
 % ABSTRACT
-\section*{Abstract}
-\langName{} is a programming language that looks like natural language. Leveraging React with Vue and Microsoft's ts-parsec library, the goal of this project was to show that a programming language can be made to look like English. Not only that, but on a fundamental level, the interpreter for \langName{} relies on semantic composition in order to derive the meaning of its sentences. While this type of language is largely inefficient, there are benefits in accessibility and interesting tie-ins with the field of semantics.
+\begin{abstract}
+	\langName{} is a programming language that looks like natural language. Leveraging React with Vue and Microsoft's ts-parsec library, the goal of this project was to show that a programming language can be made to look like English. Not only that, but on a fundamental level, the interpreter for \langName{} relies on semantic composition in order to derive the meaning of its sentences. While this type of language is largely inefficient, there are benefits in accessibility and interesting tie-ins with the field of semantics.
+\end{abstract}
 
 % MAIN BODY
 \section*{Background}
@@ -72,9 +75,9 @@ Being able to read, write, and share code efficiently and easily without much ex
 Many tools have looked to leverage natural language to various purposes. The language COBOL attempted to simulate English with it is syntax \cite{Liu2005MetaforVS}. This meant defining control structures in a way that matched English framing as shown in \lstRef{cobolLoop}.
 
 \begin{codeblock}[language=Cobol,caption={Cobol Loop Frame},label={lst:cobolLoop}]
-	PERFORM [n] TIMES
-		[Statements]
-	END-PERFORM
+PERFORM [n] TIMES
+	[Statements]
+END-PERFORM
 \end{codeblock}
 
 \lstRef{cobolLoop} somewhat mimics the English framing used to show repeated actions. Other languages, including Python, also have syntax that can be somewhat read like English. Readability is important for people to quickly and easily understand code. However, some programming languages gone the extra mile.
@@ -85,6 +88,7 @@ Another approach I discovered was Pegasus \cite{Knöll2006PegasusFS}. Pegasus us
 
 Pegasus and Metafor are closer to natural language than other programming languages in terms of their understanding of the input text. However other attempts simply merely try to mimic the appearance of natural language without the computer truly understanding the underlying linguistic phenomena the way Pegasus or Metaphor might. There have been many other examples of natural language approaching languages (multiple of which are listed in Knöll \& Mezini). Some of these experiments had interesting ideas applicable to my project. A handful of them allow for fluffy constructions like “I would like …” or “Please …” These increase the flexibility. Also, the ability to store the inflections of various words and assign specific meanings to them is very interesting. Not all of these features were feasible to add, but some more fundamental pieces like alternate grammatical frames and a semblance of real semantic composition make \langName{} more like English than many standard programming languages.
 
+\newpage{}
 \section*{Goals}
 The goals of \langName{} could be grouped into a few key groups: computational expressivity, natural language freedom, and linguistic fidelity. Balancing these three factors became a constant tug of war. Compromises had to be made in many places, but this push and pull of these three domains kept \langName{} focused on its true objective---becoming a programming language that looks like a natural language.
 
@@ -99,6 +103,7 @@ This goal is the crux of the project. Users should have as much freedom with the
 \subsection*{Linguistic Fidelity}
 The last major goal was to incorporate as much real linguistic theory as possible to allow for increased language freedom and to offer a strong base for the parsing strategies \langName{} employs. This goal is actually really important when trying to work with the first two. To allow for language freedom, I could have implemented a large number of manually created frames for all sorts of operations, but this would not be scalable and would make the computational expressivity limited to whatever those frames did. My actual approach leverages the lambda-calculus nature of natural language semantics to allow for exceptionally expressive sentences that are very English-like.
 
+\newpage{}
 \section*{Planning}
 Creating \langName{} has been a long and storied process with many ups and downs. The first step, as with many projects, is researching what others have done in the field. As mentioned earlier, the history of natural-looking languages is an eventful one. Starting with the advent of programming languages, programmers quickly began to bridge the computer-human communication gap. NLC is an unimplemented language designed by Bruce Ballard and Alan Biermann \cite{Ballard1979ProgrammingIN}. Their paper outlines a compelling argument for components a natural looking programming language needs and the types of data that such a language should be able to handle. Their model included a scanner, a parser, a semantic engine, and a matrix computer. \langName{} has the first three of these pieces as well. I utilize the ts-parsec library's built-in lexer and parser tools to tokenize the incoming sentences and then generate a pseudo-syntax tree. I can then run the top node of the tree and it will compose the meanings from across the syntax trees.
 
@@ -108,15 +113,106 @@ Pegasus actually interpreting its input is in stark contrast with another popula
 
 I did not want to use LLMs because they don't do exactly what you tell them to do. One of these models will grab bits and pieces from all over the web to cobble together that only probably will do what you want, and even if it does work, there's no guarantee it will do it in an efficient, or secure manner \cite{Fu2023SecurityWO}. This is a big factor in my goal of computational expressivity. Any user should be able to both write what they want the machine to do and have it completed accurately, and another should be able to read that person's code and know what it will do. This drove me in the direction of natural language parsers.
 
-Initially I looked into the Spacy library for Python, the NLTK library (for various languages) and the Stanford Dependency Parser \cite{Marneffe2006GeneratingTD}. These parsers unfortunately did not mesh with my use-case for two reasons. First, the dependency parsers only did so much to give me a syntax tree. Dependencies do not directly translate to a semantically composable tree. Second, these parsers allowed for entirely too much freedom and thus would make it difficult to restrict the scope of natural language allowable. This was one situation in which natural language freedom was somewhat sacrificed for computational expressivity.
+Initially I looked into the Spacy library for Python, the NLTK library (for various languages) and the Stanford Dependency Parser \cite{Marneffe2006GeneratingTD}. These parsers unfortunately did not mesh with my use-case for two reasons. First, the dependency parsers only did so much to give me a syntax tree. Dependencies do not directly translate to a semantically composable tree. Second, these parsers allowed for entirely too much freedom and thus would make it difficult to restrict the scope of allowable natural language. This was one situation in which natural language freedom was somewhat sacrificed for computational expressivity.
 
+The last big step for beginning on the final version of \langName{} was some experiments with the context free grammar (CFG) parser from the NLTK library. I was successfully able to print strings and numbers as well as add and multiply numbers together.
 
+\begin{codeblock}[caption={Initial CFG Sample},label={lst:CFGsample}]
+> Say two times two.
+: 4
+> Say three plus four times thirty-five.
+: 143
+\end{codeblock}
 
+This test gave me some useful insights into parsing with this CFG tool, but ultimately had a terrible flaw. I could not use any sort of state in the parsing. Variables and functions alike both rely on prior definitions that are accessible. If a parser cannot rely on these definitions, it makes it very difficult to guide the parser towards what a given verb needs. This led me to parser combinators.
+
+Parser combinators are a strategy for building a parser out of small functions \cite{Hutton1996MonadicPC}. You are able to consume input and modify that consumed input to produce a tailored output. This is all expanded using a variety of higher order functions that combine these smaller pieces into exactly what you are looking for. This was the tool that allowed me to effectively create \langName{}.
+
+The last decision I had to make before creating the final implementation was which language to write in. I had started this project with Python to roughly throw some ideas at the wall. Getting deeper into the weeds led me to consider a statically typed language moving forwards. This would lead to more understandable code and less technical debt. For these reasons I decided to use TypeScript. This came with the added benefit of being able to use the React framework to create a streamlined and useful user interface. 
+
+\newpage{}
 \section*{Product}
-\section*{Discussion}
-\section*{Reflection}
+\subsection*{The Lexer}
+The first layer of the \langName{} architecture is the lexer. This is a tool built using the ts-parsec library that groups the characters in the input into useful chunks. For my language, this meant words, numbers, and punctuation. Once I had these pieces I could further process them using the parser layer.
 
-% TODO IMPLEMENT SOURCES FROM .bib file
+\subsection*{The Parser}
+The parser layer is the largest and arguably most important component of \langName{}. The parser is split into three rough levels: literals and words, argument frames, and sentences. Together these three levels generate a tree of nodes that I call `XBars.' When the parser has parsed the full output with no errors, running the top XBar will perform the programmed instructions.
+
+The literals and words level of the parser does two things. First, it resolves any words. This means taking the symbol (the character representation from the source) and looks it up in the current local lexicon. The parser also resolves number literals. In the original Python implementation, you could specify numbers using the word equivalent as in \lstRef{CFGsample}, but after moving to TypeScript, that feature has not been reimplemented. \langName{} does however work with both whole numbers and decimal numbers. The only other kind of literal currently parsable is strings. Strings can be delimited using matching single or double quotes. Strings also allow for escapable characters using the backslash.
+
+\begin{codeblock}[caption={Lexer and Literal Parsing},label={lst:literalExample}]
+> Say 2.
+: {Say}{ }{2}{.}
+> Bark.
+: {Bark}{.}
+> Say "Hello World!".
+: {Say}{ }{"Hello World!"}{.}
+> Say "My name is \"Sandro\"".
+: {Say}{ }{"My name is \"Sandro\""}{.}
+\end{codeblock}
+
+The argument frame level is probably one of the most fundamentally important pieces of this entire project. This is the linchpin that allows for the natural language freedom that is so necessary in this project. \langName{} reads sentences by first capturing a verb symbol, and then repeatedly accepting arguments. In order to account for the basic verbs that I have included in the default lexicon for \langName{}, I thought of a number of ways in which the arguments can be supplied to the verb using the rest of the sentence. The big example of flexibility comes in the form of variables. A key metric I used when judging a good framing was whether or not it sounded like English. Originally I just used variable names like variable names in other languages. However, telling somebody to "Say stuff" in English would have a person either say the word "stuff" or they might just say random words. It felt unintuitive for any old word to be usable as a variable name when English words already have their own meanings. Thus the ways to access variable values in \langName{} are ``the value of \textlangle\textit{varName}\textrangle" and ``\textlangle\textit{varName}\textrangle's value." My new guiding principle was not just whether it sounded like English but whether somebody new to programming would inherently understand what was happening. Telling somebody to "Save 2 as bob's value" makes a lot more sense than "Save 2 as bob."
+
+The last level of the parser was the sentence and paragraph level. In \langName{}, sentences are split apart by punctuation like how other languages use semi-colons or linebreaks to delimit their lines. This means you can write a whole \langName{} program in one line if you wanted to. Sentences individually would grab a verb, all of the arguments it can and then a punctuation. The punctuation is actually composed with the rest of the meaning of the sentence. Periods don't change anything about the meaning, but colons supply the next sentence as an argument to the previous one.
+
+\subsection*{The XBar Structure}
+Now let us take a moment to explain how the XBars work in \langName{}. Every XBar node has a few key properties. First, it has a value. This value could be something like a string, a number, or boolean, or it could be something more complicated like a closure, or some more complicated function. That's where the second important piece of an XBar comes in. The type of an XBars value is stored using a custom Semantic Type object. These come in three varieties: the simple type (string, void, number, etc.), the variable type (contains a dictionary of string:Semantic Type pairs), the compound type (takes in a type and returns a type). By composing these types together, any type of an XBar can be described. The types can also be used to figure out whether nodes are able to compose with their sister nodes. Some types are also fuzzy which means they can match with multiple other types. The last important piece of data in an XBar is its children nodes. This set of other nodes are used to define its own value through semantic composition.
+
+The XBar system I have employed is the primary way through which I adhere to the linguistic fidelity goal. By using semantic composition to derive the meaning of a sentence, these lines of code are actually working a lot more similarly to natural langauge than something like Python. Regular programming languages use CFG parsers to generate their code, but this is done through specific uses of parentheses, dots, and brackets. My strategy allows you to reuse other frames so long as they yield the correct types to compose.
+
+This system relies heavily on the lexicon however and so far, my explanation has been hiding some under-the-hood tricks.
+
+\subsection*{The Lexicon}
+The lexicon is where the meanings of the sentence come from. The root of every sentence in \langName{} is the verb. This verbs definition comes from the lexicon tied to the scope the sentence is found within. Because the scope can change, everytime we reference a variable or verb, we need to make sure that the correct lexicon is being checked. Also, when a word was used, only the latest definition should be used. This meant that instead of creating an XBar with a number or string value whenever a variable name is referenced, instead we create an XBar that takes in a lexicon and returns a value. This was especially important considering loops. If you incremented  a value multiple times via a loop, you would only interpret the addition command once. If that does an operation based only on the initial state, than every operation will change the value to be exactly the same and nothing will be looped. If you resupply the current lexicon to the function each time, then the correct values are used.
+
+\begin{codeblock}[caption={Scope Demonstration},label={lst:scopeDemo}]
+> for each character in "abbc": if character's value is "b": for each letter in "def": Say character's value.
+: b
+: b
+: b
+: b
+: b
+: b
+\end{codeblock}
+
+\begin{wrapfigure}[7]{r}{2.1in}
+	\hspace{1em}
+	\begin{tikzpicture}
+		\draw[black, thick] (0,-1) rectangle (5,3);
+		\node at (1,2.75) {Say, For, If};
+		\draw[black, thick] (.5,-.5) rectangle (4.5,2.5);
+		\node at (2.5,2.25) {Character = a, b, b, c};
+	
+		\draw[black, thick] (1,1) rectangle (4,2);
+		\node at (2.5,1.5) {Letter = d, e, f};
+		\draw[black,thick] (1,1) to (4,2);
+		\draw[black,thick] (4,1) to (1,2);
+	
+		\draw[black, thick] (1,-.1) rectangle (4,.9);
+		\node at (2.5,0.4) {Letter = d, e, f};
+	\end{tikzpicture}
+\end{wrapfigure}
+
+The shell's lexicon contains the verb definitions. A child lexicon is created within the shell lexicon for the outer for loop with a local variable stored in "character's value." Then in the scenario where that value is "e," the inner for loop creates an even deeper nested child lexicon within the current parent. For the second iteration of the outer loop, character's value will be set to "b," and the inner loop will create a child lexicon. It does not reuse the old one. This diagram reflects the current state during the third iteration of the outer loop.
+
+At any given point, you have access to the current lexicon. Some functions like "For" will send you into a child lexicon and then have you discard it afterwards. When referencing a verb or variable, the code will find the lowest version of that symbol in the current scope hierarchy. In this example, "Say" is only found at the top level, but when "character" is referenced, it only needs to go up one level.
+
+\newpage{}
+\section*{Discussion}
+\langName{} is a complicated network of different systems that leverage computer science and linguistic principles and it fulfills my three core goals. First, with the inclusion of while loops, if statements, and variables, \langName{} is Turing complete. Meaning it satisfies the computational expressivity requirement. The deeply involved parser structure allows for the natural language freedom and helps facilitate the XBar system which in turn maintains linguistic fidelity. So, all the goals are accomplished. What makes this project useful?
+
+There are many reasons why \langName{} is an important experiment in this field. First, it is the only project I've found so far that uses any notion of semantic composition. Second, This project sits in a sort of gap left between regular programming languages and languages more similar to Pegasus. By leveraging linguistic systems like semantic composition, \langName{} is able to look like Pegasus but work like Python. That combination is largely novel (at least with this implementation).
+
+While this project is a large step in terms of natural-looking programming languages, it still falls victim to many of the usual challenges associated with programming languages and especially natural-looking ones. The farther away we get from the machine, the less efficient we can be when telling it what to do. Not only does this languages have inefficiencies due to many levels of abstraction, but it also suffers from inefficiencies directly related to the semantic model being employed. Composing each sentence and feeding it in a lexicon to generate the value is a slow process on the scale of computing. There are likely things that could be done to save time here and there, but the goal of this project was not peak efficiency. Even the changes that could be made would still leave performance lacking compared to regular programming languages.
+
+It is also critical to note that this language has lots of room to expand. So many verbs and argument frames could be added to this language. What's more, it would not be entirely difficult. Each verb only requires you to creat its fundamental XBar (i.e. a value and a type). The level of specificity could also get more granular in future iterations. My parser tends to chunk certain words together (e.g. ``each \textlangle\textit{iterator}\textrangle\ in,'' ``the value of \textlangle\textit{variable}\textrangle''). Taking this approach to its extremes, you could imagine a lexicon where ``each,'' ``in,'' ``the,'' and ``of'' all have individual meanings. The other thing to note related to this is the fact that my parser for the most part only does branching in a certain direction. The verb is attached to the thing to its right, and then the next thing to the right is attached to that and so on. This means that complex argument structures don't really work. If you were to change how the parser worked to take into account other rules (e.g. phrase structure rules) or the ability for two words to semantically compose, you could get a lot closer to English with the programming language.
+
+Another interesting implication of this project is the possibility of teaching applications. Having worked with young children learning to program, there are many things that a long-time programmer might take for granted. Variables being labels to store information under is not intuitive to somebody who has never seen something like that before. This is true for other structures in programming as well. If there were a language that let you talk to it in a way that explained what you were doing, that would likely help to reinforce how these different pieces work.
+
+I do not think that \langName{} is the language of the future, but there are definitely a lot of features and ideas built into it that can be expanded upon and used in other systems. A language for learning that explains what it is doing without comments. A language for researchers that has lower barriers to entry. There are many possibilities, and they do not rely on incredibly complicated models of the brain or neural networks. That is the promise of \langName{}.
+
+
+\newpage{}
 \bibliographystyle{apalike}
 \bibliography{Sources}
 

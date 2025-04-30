@@ -134,18 +134,23 @@ NaturalParser.setPattern(
 
 NaturalParser.setPattern(
   parserRules.NUMBER,
-  apply(
-    seq(
-      tok(TokenKind.Numeric),
-      opt_sc(kright(str("."), tok(TokenKind.Numeric)))
-    ),
-    ([value, decimal]: [
-      Token<TokenKind.Numeric>,
-      undefined | Token<TokenKind.Numeric>
-    ]) => ({
-      symbol: value.text + (decimal != undefined ? `.${decimal.text}` : ""),
-      type: SentenceTokenType.Number,
-    })
+  combine(opt_sc(str("-")), (negative: undefined | Token<TokenKind>) =>
+    apply(
+      seq(
+        tok(TokenKind.Numeric),
+        opt_sc(kright(str("."), tok(TokenKind.Numeric)))
+      ),
+      ([value, decimal]: [
+        Token<TokenKind.Numeric>,
+        undefined | Token<TokenKind.Numeric>
+      ]) => ({
+        symbol:
+          (negative != undefined ? "-" : "") +
+          value.text +
+          (decimal != undefined ? `.${decimal.text}` : ""),
+        type: SentenceTokenType.Number,
+      })
+    )
   )
 );
 
