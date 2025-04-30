@@ -91,6 +91,10 @@ multi_test(
       "Save 3 as myValue's value. Add 2 to myValue's value 5 times. Say myValue's value.",
       ["13", "FINISHED"],
     ],
+    [
+      "For each character in 'beep boop': Say character's value, and Say 'true' if character's value is 'b'.",
+      ["b", "true", "e", "e", "p", " ", "b", "true", "o", "o", "p", "FINISHED"],
+    ],
   ],
   sentenceTest
 );
@@ -101,6 +105,8 @@ multi_test(
     ["If true: say 2.", ["2", "FINISHED"]],
     ["If 2 is 2: bark.", ["Woof!", "FINISHED"]],
     ["bark if 2 is 2.", ["Woof!", "FINISHED"]],
+    ["if true: Say 2, and Say 3.", ["2", "3", "FINISHED"]],
+    ["if false: Say 2, and Say 3.", ["FINISHED"]],
   ],
   sentenceTest
 );

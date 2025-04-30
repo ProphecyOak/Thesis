@@ -34,4 +34,4 @@ export function captureOutput<T>(
   return output;
 }
 
-// TODO Add more tests (paragraph, numbers, strings, etc)
+// STRETCH Add more tests (paragraph, numbers, strings, etc)

@@ -1,5 +1,5 @@
 // An enum for defining different base types and type-classes.
-// TODO Make type-classes there own thing to make equality checks better.
+// STRETCH Make type-classes there own thing to make equality checks better.
 enum SemanticPrimitive {
   Void = "Void",
   String = "String",

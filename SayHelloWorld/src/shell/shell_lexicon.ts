@@ -80,8 +80,10 @@ shellLex.add(
   )
 );
 
-// TODO use Memoized For Loops (notes)
+// STRETCH use Memoized For Loops (notes)
 // Might need to do in composeEmAll
+
+// TODO WHILE LOOP
 
 type myIterable = Array<string>;
 shellLex.add(

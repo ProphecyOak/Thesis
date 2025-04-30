@@ -17,6 +17,7 @@ import {
   str,
   tok,
   Token,
+  fail,
 } from "typescript-parsec";
 import { Lexicon, XBar } from "../structure/xBar";
 import {
@@ -172,7 +173,7 @@ NaturalParser.setPattern(
     apply(alt(str("."), str("!")), (punctuationMark: Token<TokenKind>) => {
       return () =>
         new XBar(
-          (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex), // TODO Punctuation differences?
+          (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex),
           new CompoundSemanticType(
             new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
             new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
@@ -187,6 +188,25 @@ NaturalParser.setPattern(
           (lex: Lexicon) => memo(() => sentence(lex).value)(),
           new CompoundSemanticType(
             LexRoot.Lexicon,
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+          ),
+          ":"
+        )
+    ),
+    apply(
+      kright(
+        seq(str(","), str(" "), str("and"), str(" ")),
+        parserRules.SENTENCE
+      ),
+      (sentence: PreLexXBar) => () =>
+        new XBar(
+          (firstSentence: (lex: Lexicon) => void) => (lex: Lexicon) =>
+            memo(() => {
+              firstSentence(lex);
+              sentence(lex).run(lex);
+            })(),
+          new CompoundSemanticType(
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
             new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
           ),
           ":"
@@ -277,11 +297,16 @@ const variablePossesivePattern: Parser<
   parserRules.WORD
 );
 
-addFrame(
-  "The Value Of",
-  alt(
+// STRETCH "THE" INSIDE LOOPS
+
+const prepositionPattern: Parser<TokenKind, PreLexXBar> = fail(
+  "No prepositions defined yet."
+);
+
+const modifiedValuePattern: Parser<TokenKind, PreLexXBar> = apply(
+  seq(
     apply(
-      variableValuePattern,
+      alt(variableValuePattern, variablePossesivePattern),
       ([word, property]: [SentenceToken, SentenceToken]) =>
         (lex: Lexicon) => {
           if (property.symbol.toLowerCase() != "value")
@@ -302,31 +327,17 @@ addFrame(
           );
         }
     ),
-    apply(
-      variablePossesivePattern,
-      ([word, property]: [SentenceToken, SentenceToken]) =>
-        (lex: Lexicon) => {
-          if (property.symbol.toLowerCase() != "value")
-            throw new Error("You can only grab values right now.");
-          const definedWord = lex.lookup(word.symbol);
-          return XBar.createParent(
-            new XBar(
-              (valueObj: Map<string, unknown>) => () => ({
-                get: () => valueObj.get("value"),
-              }),
-              new CompoundSemanticType(
-                definedWord.type,
-                new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
-              ),
-              `${property.symbol} of`
-            ),
-            definedWord
-          );
-        }
-    )
-  )
+    rep_sc(kright(opt_sc(str(" ")), prepositionPattern))
+  ),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ([initialValue, _phrases]: [PreLexXBar, PreLexXBar[]]) => {
+    return initialValue;
+  }
 );
 
+addFrame("The Value Of", modifiedValuePattern);
+
+// REWORK replace with "AS" preposition
 addFrame(
   "As Destination",
   apply(
@@ -346,6 +357,7 @@ addFrame(
   )
 );
 
+// REWORK replace with "TO" preposition
 addFrame(
   "To Variable",
   apply(
@@ -449,6 +461,9 @@ addFrame(
   )
 );
 
+// TODO ADD A PREPOSITION LIST!!! :)
+
+// REWORK replace with "IN" preposition
 addFrame(
   "In Iterable",
   kright(
@@ -581,25 +596,21 @@ NaturalParser.setPattern(
   parserRules.PARAGRAPH,
   apply(
     rep_sc(kleft(parserRules.SENTENCE, opt_sc(str(" ")))),
-    (sentences: PreLexXBar[]) => {
-      return (lex: Lexicon) => {
-        const lexedSentences: XBar[] = [];
-        const outXBar = new XBar(
-          sentences.reduce(
-            (acc: () => void, e: PreLexXBar) => {
-              return () => {
-                acc();
-                lexedSentences.push(e(lex));
-                lexedSentences[lexedSentences.length - 1].run(lex);
-              };
-            },
-            () => null
-          ),
-          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
-        );
-        outXBar.children = lexedSentences;
-        return outXBar;
-      };
+    (sentences: PreLexXBar[]) => (lex: Lexicon) => {
+      const lexedSentences: XBar[] = [];
+      const outXBar = new XBar(
+        sentences.reduce(
+          (acc: () => void, e: PreLexXBar) => () => {
+            acc();
+            lexedSentences.push(e(lex));
+            lexedSentences[lexedSentences.length - 1].run(lex);
+          },
+          () => null
+        ),
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+      );
+      outXBar.children = lexedSentences;
+      return outXBar;
     }
   )
 );
