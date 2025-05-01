@@ -3,8 +3,7 @@ import "./Shell.css";
 import { captureOutput } from "../tools/tester";
 import { NaturalParser } from "../tools/parser";
 import { shellLex } from "./shell_lexicon";
-import { Lexicon, XBar } from "../structure/xBar";
-import { getPrintableTree } from "../tools/tree_printer";
+import { Lexicon } from "../structure/xBar";
 
 function Shell() {
   type historyItem = { command: string; results: string[]; error: boolean };
@@ -15,8 +14,6 @@ function Shell() {
   const [currentCommandHeight, modifyCommandHeight] = useState(-1);
   // Holds onto the local scope lexicon.
   const [localLex, changeLocalLex] = useState(new Lexicon(shellLex));
-
-  const [showTree, changeShowTree] = useState(true); //FIXME should be false
 
   // Element refs for modifying the shell history and command line.
   const shellHistoryElement = useRef<HTMLDivElement>(
@@ -54,17 +51,20 @@ function Shell() {
 
   // FIXME showTreeDisplay not working
   function toggleTreeDisplay() {
-    changeShowTree(!showTree);
+    NaturalParser.printTree = !NaturalParser.printTree;
   }
 
   // Checks to see if a new command is done being entered and
   // if so, executes the command.
   function valueChange(event: FormEvent<HTMLTextAreaElement>) {
+    if (!(event.target instanceof HTMLTextAreaElement)) return;
+    event.target.style.height = "";
+    event.target.style.height = event.target.scrollHeight + "px";
     switch ((event.nativeEvent as InputEvent).inputType) {
       case "insertText":
         break;
       case "insertLineBreak": {
-        const line = (event.target as HTMLTextAreaElement).value;
+        const line = event.target.value;
         const results = new Array<string>();
         const newHistory: historyItem = {
           command: line.replace("\n", ""),
@@ -104,12 +104,17 @@ function Shell() {
             NaturalParser.parserRules.PARAGRAPH
           ).forEach((x) => {
             const output = x.run(localLex);
-            if (showTree) console.log(getPrintableTree(x, XBar.toTree));
             return output;
           }),
         false,
         true
       );
+      if (
+        history.results.some((outputLine: string) =>
+          outputLine.includes("ERROR")
+        )
+      )
+        history.error = true;
     }
   }
 
@@ -142,8 +147,10 @@ function Shell() {
         </div>
       </div>
       <div id="treeToggle">
-        Show Trees
-        <input type="checkbox" onClick={toggleTreeDisplay}></input>
+        <label>
+          Show Trees
+          <input type="checkbox" onClick={toggleTreeDisplay} />
+        </label>
       </div>
     </>
   );

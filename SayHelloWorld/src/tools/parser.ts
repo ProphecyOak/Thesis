@@ -25,6 +25,7 @@ import {
   LexRoot,
   ObjectSemanticType,
 } from "../structure/semantic_type";
+import { getPrintableTree } from "./tree_printer";
 
 // List of different tokenkinds to be regex'd
 export enum TokenKind {
@@ -81,7 +82,8 @@ export class NaturalParser {
     [true, /^./g, TokenKind.Other],
   ]);
 
-  //
+  static printTree = false;
+
   static parserRules = parserRules;
 
   //Returns the appropriate XBar given text.
@@ -226,7 +228,7 @@ NaturalParser.setPattern(
             new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
             new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
           ),
-          ":"
+          ", and"
         )
     )
   )
@@ -659,7 +661,14 @@ NaturalParser.setPattern(
       SentenceToken,
       PreLexXBar[],
       PreLexXBar
-    ]) => composeEmAll(verb, verbArgs, punctuation)
+    ]) => {
+      return (lex: Lexicon) => {
+        const result = composeEmAll(verb, verbArgs, punctuation)(lex);
+        if (NaturalParser.printTree)
+          console.log(getPrintableTree(result, XBar.toTree));
+        return result;
+      };
+    }
   )
 );
 
