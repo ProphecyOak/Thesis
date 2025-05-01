@@ -8,6 +8,7 @@ enum SemanticPrimitive {
   Lexicon = "Lexicon",
   Stringable = "Stringable",
   Iterable = "Iterable",
+  Block = "Block",
 }
 
 // An interface for semantic types.
@@ -111,5 +112,6 @@ export const LexRoot = {
   Lexicon: new SimpleSemanticType(SemanticPrimitive.Lexicon),
   Stringable: new SimpleSemanticType(SemanticPrimitive.Stringable),
   Iterable: new SimpleSemanticType(SemanticPrimitive.Iterable),
+  Block: new SimpleSemanticType(SemanticPrimitive.Block),
   ValueObject: (valueType: SemanticType) => new ObjectSemanticType(valueType),
 };

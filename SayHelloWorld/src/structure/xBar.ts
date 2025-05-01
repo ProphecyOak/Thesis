@@ -10,12 +10,18 @@ export class XBar {
   readonly symbol: string;
 
   // Child XBars
-  children?: XBar[];
+  children: XBar[] = [];
 
-  constructor(value: unknown, type: SemanticType, symbol?: string) {
+  constructor(
+    value: unknown,
+    type: SemanticType,
+    symbol?: string,
+    children?: XBar[]
+  ) {
     this.value = value;
     this.type = type;
     this.symbol = symbol ? symbol : "";
+    if (children) this.children = children;
   }
 
   // If the type of this XBar's value is (lex: ILexicon)=>void, then runs it.

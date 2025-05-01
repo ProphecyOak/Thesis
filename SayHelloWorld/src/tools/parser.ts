@@ -184,13 +184,30 @@ NaturalParser.setPattern(
     apply(
       kright(seq(str(":"), opt_sc(str(" "))), parserRules.SENTENCE),
       (sentence: PreLexXBar) => () =>
-        new XBar(
-          (lex: Lexicon) => memo(() => sentence(lex).value)(),
-          new CompoundSemanticType(
-            LexRoot.Lexicon,
-            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+        XBar.createParent(
+          new XBar(
+            (block: (lex: Lexicon) => { value: () => void }) =>
+              (lex: Lexicon) =>
+                memo(() => block(lex).value)(),
+            new CompoundSemanticType(
+              new CompoundSemanticType(
+                LexRoot.Lexicon,
+                new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+              ),
+              new CompoundSemanticType(
+                LexRoot.Lexicon,
+                new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+              )
+            ),
+            ":"
           ),
-          ":"
+          new XBar(
+            sentence,
+            new CompoundSemanticType(
+              LexRoot.Lexicon,
+              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+            )
+          )
         )
     ),
     apply(
@@ -651,19 +668,21 @@ NaturalParser.setPattern(
   apply(
     rep_sc(kleft(parserRules.SENTENCE, opt_sc(str(" ")))),
     (sentences: PreLexXBar[]) => (lex: Lexicon) => {
-      const lexedSentences: XBar[] = [];
-      const outXBar = new XBar(
-        sentences.reduce(
-          (acc: () => void, e: PreLexXBar) => () => {
-            acc();
-            lexedSentences.push(e(lex));
-            lexedSentences[lexedSentences.length - 1].run(lex);
-          },
-          () => null
-        ),
-        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+      const futureChildren: XBar[] = [];
+      const paraValue = sentences.reduce(
+        (acc: () => void, e: PreLexXBar) => () => {
+          acc();
+          futureChildren.push(e(lex));
+          futureChildren[futureChildren.length - 1].run(lex);
+        },
+        () => null
       );
-      outXBar.children = lexedSentences;
+      const outXBar = new XBar(
+        paraValue,
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
+        "Paragraph",
+        futureChildren
+      );
       return outXBar;
     }
   )

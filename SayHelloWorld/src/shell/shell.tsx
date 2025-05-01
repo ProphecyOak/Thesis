@@ -16,7 +16,7 @@ function Shell() {
   // Holds onto the local scope lexicon.
   const [localLex, changeLocalLex] = useState(new Lexicon(shellLex));
 
-  const [showTree, changeShowTree] = useState(false);
+  const [showTree, changeShowTree] = useState(true); //FIXME should be false
 
   // Element refs for modifying the shell history and command line.
   const shellHistoryElement = useRef<HTMLDivElement>(
@@ -54,7 +54,7 @@ function Shell() {
 
   // FIXME showTreeDisplay not working
   function toggleTreeDisplay() {
-    changeShowTree(showTree.valueOf());
+    changeShowTree(!showTree);
   }
 
   // Checks to see if a new command is done being entered and
@@ -103,9 +103,9 @@ function Shell() {
             localLex,
             NaturalParser.parserRules.PARAGRAPH
           ).forEach((x) => {
-            if (showTree.valueOf())
-              console.log(getPrintableTree(x, XBar.toTree));
-            return x.run(localLex);
+            const output = x.run(localLex);
+            if (showTree) console.log(getPrintableTree(x, XBar.toTree));
+            return output;
           }),
         false,
         true
@@ -143,7 +143,7 @@ function Shell() {
       </div>
       <div id="treeToggle">
         Show Trees
-        <input type="checkbox" onToggle={toggleTreeDisplay}></input>
+        <input type="checkbox" onClick={toggleTreeDisplay}></input>
       </div>
     </>
   );
