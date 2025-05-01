@@ -16,11 +16,9 @@ testLex.add(
 );
 
 function sentenceTest(text: string) {
-  NaturalParser.evaluate(
-    text,
-    testLex,
-    NaturalParser.parserRules.PARAGRAPH
-  ).forEach((x) => x.run(testLex));
+  NaturalParser.evaluate(text, NaturalParser.parserRules.PARAGRAPH).forEach(
+    (x) => x.run(testLex)
+  );
   return "FINISHED";
 }
 

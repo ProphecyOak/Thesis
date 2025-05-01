@@ -100,7 +100,6 @@ function Shell() {
         () =>
           NaturalParser.evaluate(
             history.command,
-            localLex,
             NaturalParser.parserRules.PARAGRAPH
           ).forEach((x) => {
             const output = x.run(localLex);

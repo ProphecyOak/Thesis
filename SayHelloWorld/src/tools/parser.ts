@@ -51,18 +51,15 @@ interface SentenceToken {
   type: SentenceTokenType;
 }
 
-// A utility type for XBars that need to wait for context to be resolved.
-type PreLexXBar = (lex: Lexicon) => XBar;
-
 // Defines which rules are gonna be available to parse (and reuse).
 // Does not include frames for arguments.
 const parserRules = {
-  PARAGRAPH: rule<TokenKind, PreLexXBar>(),
-  SENTENCE: rule<TokenKind, PreLexXBar>(),
+  PARAGRAPH: rule<TokenKind, XBar>(),
+  SENTENCE: rule<TokenKind, XBar>(),
   WORD: rule<TokenKind, SentenceToken>(),
   NUMBER: rule<TokenKind, SentenceToken>(),
   STRING: rule<TokenKind, SentenceToken>(),
-  PUNCTUATION: rule<TokenKind, PreLexXBar>(),
+  PUNCTUATION: rule<TokenKind, XBar>(),
 };
 
 // Class to hold onto all the parser bits for external use.
@@ -85,15 +82,11 @@ export class NaturalParser {
   static parserRules = parserRules;
 
   //Returns the appropriate XBar given text.
-  static evaluate(
-    sentence: string,
-    lexicon: Lexicon,
-    rule: Rule<TokenKind, PreLexXBar>
-  ): XBar[] {
+  static evaluate(sentence: string, rule: Rule<TokenKind, XBar>): XBar[] {
     const parseResults = expectEOF(
       rule.parse(NaturalParser.lexer.parse(sentence))
     );
-    const parseResult = expectSingleResult(parseResults)(lexicon);
+    const parseResult = expectSingleResult(parseResults);
     return [parseResult];
   }
 
@@ -171,19 +164,18 @@ NaturalParser.setPattern(
   parserRules.PUNCTUATION,
   alt(
     apply(alt(str("."), str("!")), (punctuationMark: Token<TokenKind>) => {
-      return () =>
-        new XBar(
-          (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex),
-          new CompoundSemanticType(
-            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
-            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
-          ),
-          punctuationMark.text
-        );
+      return new XBar(
+        (phrase: (_lex: Lexicon) => void) => (lex: Lexicon) => phrase(lex),
+        new CompoundSemanticType(
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+        ),
+        punctuationMark.text
+      );
     }),
     apply(
       kright(seq(str(":"), opt_sc(str(" "))), parserRules.SENTENCE),
-      (sentence: PreLexXBar) => () =>
+      (sentence: XBar) =>
         XBar.createParent(
           new XBar(
             (block: (lex: Lexicon) => { value: () => void }) =>
@@ -215,12 +207,12 @@ NaturalParser.setPattern(
         seq(str(","), str(" "), str("and"), str(" ")),
         parserRules.SENTENCE
       ),
-      (sentence: PreLexXBar) => () =>
+      (sentence: XBar) => () =>
         new XBar(
           (firstSentence: (lex: Lexicon) => void) => (lex: Lexicon) =>
             memo(() => {
               firstSentence(lex);
-              sentence(lex).run(lex);
+              sentence.run(lex);
             })(),
           new CompoundSemanticType(
             new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void),
@@ -242,28 +234,30 @@ NaturalParser.setPattern(
 
 function composeEmAll(
   verb: SentenceToken,
-  verbArgs: PreLexXBar[],
-  punctuation: PreLexXBar
-): PreLexXBar {
-  return (lex: Lexicon) => {
-    let outXBar = lex.lookup(verb.symbol);
-    let i = 0;
-    while (i < verbArgs.length) {
-      outXBar = XBar.createParent(outXBar, verbArgs[i](lex));
-      i++;
-    }
-    outXBar = XBar.createParent(outXBar, punctuation(lex));
-    return outXBar;
-  };
+  verbArgs: XBar[],
+  punctuation: XBar
+): XBar {
+  let outXBar = new XBar(
+    (lex: Lexicon) => lex.lookup(verb.symbol),
+    LexRoot.Unresolved,
+    verb.symbol
+  );
+  let i = 0;
+  while (i < verbArgs.length) {
+    outXBar = XBar.createParent(outXBar, verbArgs[i]);
+    i++;
+  }
+  outXBar = XBar.createParent(outXBar, punctuation);
+  return outXBar;
 }
 
 interface Frame {
   name: string;
-  pattern: Parser<TokenKind, PreLexXBar>;
+  pattern: Parser<TokenKind, XBar>;
 }
 const frames = new Map<string, Frame>();
 
-function addFrame(name: string, pattern: Parser<TokenKind, PreLexXBar>) {
+function addFrame(name: string, pattern: Parser<TokenKind, XBar>) {
   frames.set(name, {
     name,
     pattern,
@@ -275,7 +269,7 @@ addFrame(
   alt_sc(
     apply(
       parserRules.STRING,
-      (literal: SentenceToken) => () =>
+      (literal: SentenceToken) =>
         new XBar(
           () => ({ get: () => literal.symbol, type: LexRoot.String }),
           new CompoundSemanticType(LexRoot.Lexicon, LexRoot.String),
@@ -284,7 +278,7 @@ addFrame(
     ),
     apply(
       parserRules.NUMBER,
-      (literal: SentenceToken) => () =>
+      (literal: SentenceToken) =>
         new XBar(
           () => ({ get: () => Number(literal.symbol), type: LexRoot.Number }),
           new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Number),
@@ -293,7 +287,12 @@ addFrame(
     ),
     apply(
       alt_sc(str("true"), str("false")),
-      (val: Token<TokenKind>) => (lex: Lexicon) => lex.lookup(val.text)
+      (val: Token<TokenKind>) =>
+        new XBar(
+          (lex: Lexicon) => lex.lookup(val.text),
+          LexRoot.Unresolved,
+          val.text
+        )
     )
   )
 );
@@ -316,39 +315,42 @@ const variablePossesivePattern: Parser<
 
 // STRETCH "THE" INSIDE LOOPS
 
-const prepositionPattern: Parser<TokenKind, PreLexXBar> = fail(
+const prepositionPattern: Parser<TokenKind, XBar> = fail(
   "No prepositions defined yet."
 );
 
-const modifiedValuePattern: Parser<TokenKind, PreLexXBar> = apply(
+const modifiedValuePattern: Parser<TokenKind, XBar> = apply(
   seq(
     apply(
       alt(variableValuePattern, variablePossesivePattern),
-      ([word, property]: [SentenceToken, SentenceToken]) =>
-        (lex: Lexicon) => {
-          if (property.symbol.toLowerCase() != "value")
-            throw new Error("You can only grab values right now.");
-          const definedWord = lex.lookup(word.symbol);
-          return XBar.createParent(
-            new XBar(
-              (valueObj: Map<string, unknown>) => () => ({
-                get: () => valueObj.get("value"),
-              }),
-              new CompoundSemanticType(
-                definedWord.type,
-                new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
-              ),
-              `the ${property.symbol} of`
+      ([word, property]: [SentenceToken, SentenceToken]) => {
+        if (property.symbol.toLowerCase() != "value")
+          throw new Error("You can only grab values right now.");
+        const definedWord = new XBar(
+          (lex: Lexicon) => lex.lookup(word.symbol),
+          LexRoot.Unresolved,
+          word.symbol
+        );
+        return XBar.createParent(
+          new XBar(
+            (valueObj: Map<string, unknown>) => () => ({
+              get: () => valueObj.get("value"),
+            }),
+            new CompoundSemanticType(
+              definedWord.type,
+              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
             ),
-            definedWord
-          );
-        }
+            `the ${property.symbol} of`
+          ),
+          definedWord
+        );
+      }
     ),
     rep_sc(kright(opt_sc(str(" ")), prepositionPattern))
   ),
   // FIXME prep phrase handling.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ([initialValue, _phrases]: [PreLexXBar, PreLexXBar[]]) => {
+  ([initialValue, _phrases]: [XBar, XBar[]]) => {
     return initialValue;
   }
 );
@@ -364,14 +366,13 @@ addFrame(
       alt(variableValuePattern, variablePossesivePattern)
     ),
     ([word, property]: [SentenceToken, SentenceToken]) =>
-      () =>
-        new XBar(
-          {
-            get: () => word.symbol,
-          },
-          LexRoot.String,
-          `as the ${property.symbol} of ${word.symbol}`
-        )
+      new XBar(
+        {
+          get: () => word.symbol,
+        },
+        LexRoot.String,
+        `as the ${property.symbol} of ${word.symbol}`
+      )
   )
 );
 
@@ -384,40 +385,39 @@ addFrame(
       alt(variableValuePattern, variablePossesivePattern)
     ),
     ([word, property]: [SentenceToken, SentenceToken]) =>
-      () =>
-        new XBar(
-          (
-              fx: (
-                secondArg: (lex: Lexicon) => { get: () => string | number }
-              ) => (lex: Lexicon) => string | number
-            ) =>
-            (lex: Lexicon) => {
-              lex.modify(
-                word.symbol,
-                property.symbol,
-                fx((lex: Lexicon) => {
-                  const variable = lex.lookup(word.symbol) as XBar;
-                  return {
-                    get: () =>
-                      (variable.value as Map<string, string | number>).get(
-                        "value"
-                      )!,
-                    type: (variable.type as ObjectSemanticType).types.get(
+      new XBar(
+        (
+            fx: (
+              secondArg: (lex: Lexicon) => { get: () => string | number }
+            ) => (lex: Lexicon) => string | number
+          ) =>
+          (lex: Lexicon) => {
+            lex.modify(
+              word.symbol,
+              property.symbol,
+              fx((lex: Lexicon) => {
+                const variable = lex.lookup(word.symbol) as XBar;
+                return {
+                  get: () =>
+                    (variable.value as Map<string, string | number>).get(
                       "value"
-                    ),
-                  };
-                })(lex)
-              );
-            },
+                    )!,
+                  type: (variable.type as ObjectSemanticType).types.get(
+                    "value"
+                  ),
+                };
+              })(lex)
+            );
+          },
+        new CompoundSemanticType(
           new CompoundSemanticType(
-            new CompoundSemanticType(
-              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable),
-              new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
-            ),
-            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable),
+            new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Stringable)
           ),
-          `to the ${property.symbol} of ${word.symbol}`
-        )
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+        ),
+        `to the ${property.symbol} of ${word.symbol}`
+      )
   )
 );
 
@@ -432,18 +432,17 @@ addFrame(
         ),
         seq(str(" "), str("times"))
       ),
-      (oldValue: PreLexXBar) => (lex: Lexicon) => {
-        const lexedBar = oldValue(lex);
+      (oldValue: XBar) => {
         return new XBar(
-          lexedBar.value,
+          oldValue.value,
           new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Number),
-          lexedBar.symbol
+          oldValue.symbol
         );
       }
     ),
-    (iterationCount: PreLexXBar) => (lex: Lexicon) =>
+    (iterationCount: XBar) =>
       XBar.createParent(
-        iterationCount(lex),
+        iterationCount,
         new XBar(
           (value: (lex: Lexicon) => { get: () => number }) =>
             (phrase: (_lex: Lexicon) => void) =>
@@ -467,7 +466,7 @@ addFrame(
   "Each X",
   apply(
     kright(seq(str("each"), str(" ")), parserRules.WORD),
-    (word: SentenceToken) => () => {
+    (word: SentenceToken) => {
       return new XBar(
         {
           get: () => word.symbol,
@@ -489,27 +488,23 @@ addFrame(
     alt(
       apply(
         parserRules.STRING,
-        (iterable: SentenceToken) => () =>
+        (iterable: SentenceToken) =>
           new XBar(
             { get: () => Array.from(iterable.symbol) },
             LexRoot.Iterable,
             `[${iterable.symbol}]`
           )
       ),
-      apply(
-        frames.get("The Value Of")!.pattern,
-        (variable: PreLexXBar) => (lex: Lexicon) => {
-          const definedWord = variable(lex);
-          const iterable: string = (
-            definedWord.value as { get: () => string }
-          ).get();
-          return new XBar(
-            { get: () => Array.from(iterable) },
-            LexRoot.Iterable,
-            `[${iterable}]`
-          );
-        }
-      )
+      apply(frames.get("The Value Of")!.pattern, (variable: XBar) => {
+        const iterable: string = (
+          variable.value as { get: () => string }
+        ).get();
+        return new XBar(
+          { get: () => Array.from(iterable) },
+          LexRoot.Iterable,
+          `[${iterable}]`
+        );
+      })
     )
   )
 );
@@ -541,10 +536,7 @@ addFrame(
       ),
       alt(frames.get("The Value Of")!.pattern, frames.get("Literal")!.pattern)
     ),
-    ([[value1, comparison], value2]: [
-      [PreLexXBar, string | undefined],
-      PreLexXBar
-    ]) => {
+    ([[XBar1, comparison], XBar2]: [[XBar, string | undefined], XBar]) => {
       let logicFunction: (a: unknown, b: unknown) => boolean;
       switch (comparison) {
         case "LT":
@@ -578,27 +570,23 @@ addFrame(
           };
           break;
       }
-      return (lex: Lexicon) => {
-        const XBar1 = value1(lex);
-        const XBar2 = value2(lex);
-        const boolXBar = new XBar(
-          () => ({
-            get: () =>
-              logicFunction(
-                (XBar1.value as (lex: Lexicon) => { get: () => unknown })(
-                  lex
-                ).get(),
-                (XBar2.value as (lex: Lexicon) => { get: () => unknown })(
-                  lex
-                ).get()
-              ),
-          }),
-          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
-          `${XBar1.symbol} == ${XBar2.symbol}`
-        );
-        boolXBar.children = [XBar1, XBar2];
-        return boolXBar;
-      };
+      const boolXBar = new XBar(
+        (lex: Lexicon) => ({
+          get: () =>
+            logicFunction(
+              (XBar1.value as (lex: Lexicon) => { get: () => unknown })(
+                lex
+              ).get(),
+              (XBar2.value as (lex: Lexicon) => { get: () => unknown })(
+                lex
+              ).get()
+            ),
+        }),
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
+        `${XBar1.symbol} == ${XBar2.symbol}`
+      );
+      boolXBar.children = [XBar1, XBar2];
+      return boolXBar;
     }
   )
 );
@@ -616,9 +604,9 @@ addFrame(
         frames.get("Is (Equality)")!.pattern
       )
     ),
-    (condition: PreLexXBar) => (lex: Lexicon) =>
+    (condition: XBar) =>
       XBar.createParent(
-        condition(lex),
+        condition,
         new XBar(
           (value: (lex: Lexicon) => { get: () => boolean }) =>
             (phrase: (_lex: Lexicon) => void) =>
@@ -655,11 +643,8 @@ NaturalParser.setPattern(
       rep_sc(kright(opt_sc(str(" ")), altFrame)),
       parserRules.PUNCTUATION
     ),
-    ([verb, verbArgs, punctuation]: [
-      SentenceToken,
-      PreLexXBar[],
-      PreLexXBar
-    ]) => composeEmAll(verb, verbArgs, punctuation)
+    ([verb, verbArgs, punctuation]: [SentenceToken, XBar[], XBar]) =>
+      composeEmAll(verb, verbArgs, punctuation)
   )
 );
 
@@ -667,12 +652,12 @@ NaturalParser.setPattern(
   parserRules.PARAGRAPH,
   apply(
     rep_sc(kleft(parserRules.SENTENCE, opt_sc(str(" ")))),
-    (sentences: PreLexXBar[]) => (lex: Lexicon) => {
+    (sentences: XBar[]) => {
       const futureChildren: XBar[] = [];
       const paraValue = sentences.reduce(
-        (acc: () => void, e: PreLexXBar) => () => {
-          acc();
-          futureChildren.push(e(lex));
+        (acc: (lex: Lexicon) => void, e: XBar) => (lex: Lexicon) => {
+          acc(lex);
+          futureChildren.push(e);
           futureChildren[futureChildren.length - 1].run(lex);
         },
         () => null
