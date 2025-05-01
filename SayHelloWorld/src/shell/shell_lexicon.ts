@@ -83,8 +83,6 @@ shellLex.add(
 // STRETCH use Memoized For Loops (notes)
 // Might need to do in composeEmAll
 
-// TODO WHILE LOOP
-
 type myIterable = Array<string>;
 shellLex.add(
   "For",
@@ -130,6 +128,33 @@ shellLex.add(
   )
 );
 
+shellLex.add(
+  "While",
+  new XBar(
+    (condition: (lex: Lexicon) => { get: () => boolean }) =>
+      (task: (lex: Lexicon) => (lex: Lexicon) => void) =>
+      (lex: Lexicon) => {
+        const smallLex = new Lexicon(lex);
+
+        const lexedTask = task(smallLex);
+        while (condition(smallLex).get()) {
+          lexedTask(smallLex);
+        }
+      },
+    new CompoundSemanticType(
+      new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
+      new CompoundSemanticType(
+        new CompoundSemanticType(
+          LexRoot.Lexicon,
+          new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+        ),
+        new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Void)
+      )
+    ),
+    "While"
+  )
+);
+
 function addHelper(a: unknown, b: unknown) {
   if (typeof a == "string" && typeof b == "string") return a + b;
   if (typeof a == "number" && typeof b == "number") return a + b;
@@ -162,9 +187,8 @@ shellLex.add(
   new XBar(
     (condition: (lex: Lexicon) => { get: () => boolean }) =>
       (task: (lex: Lexicon) => (lex: Lexicon) => void) =>
-      (lex: Lexicon) => {
-        return condition(lex).get() ? task(lex)(lex) : () => null;
-      },
+      (lex: Lexicon) =>
+        condition(lex).get() ? task(lex)(lex) : () => null,
     new CompoundSemanticType(
       new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
       new CompoundSemanticType(

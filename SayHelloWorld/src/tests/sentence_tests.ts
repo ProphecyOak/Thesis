@@ -110,3 +110,18 @@ multi_test(
   ],
   sentenceTest
 );
+
+multi_test(
+  "While Loops",
+  [
+    [
+      "Save 2 as Sandro's value. While Sandro's value is 2: say Sandro's value, and add 1 to sandro's value.",
+      ["2", "FINISHED"],
+    ],
+    [
+      "Save 2 as Sandro's value. While Sandro's value is less than 5: say Sandro's value, and add 1 to sandro's value.",
+      ["2", "3", "4", "FINISHED"],
+    ],
+  ],
+  sentenceTest
+);

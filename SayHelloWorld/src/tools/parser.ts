@@ -329,6 +329,7 @@ const modifiedValuePattern: Parser<TokenKind, PreLexXBar> = apply(
     ),
     rep_sc(kright(opt_sc(str(" ")), prepositionPattern))
   ),
+  // FIXME prep phrase handling.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ([initialValue, _phrases]: [PreLexXBar, PreLexXBar[]]) => {
     return initialValue;
@@ -500,35 +501,88 @@ addFrame(
   "Is (Equality)",
   apply(
     seq(
-      kleft(
+      seq(
         alt(
           frames.get("The Value Of")!.pattern,
           frames.get("Literal")!.pattern
         ),
-        seq(str(" "), str("is"), str(" "))
+        kleft(
+          kright(
+            seq(str(" "), str("is")),
+            opt_sc(
+              kright(
+                str(" "),
+                alt(
+                  apply(seq(str("greater"), str(" "), str("than")), () => "GT"),
+                  apply(seq(str("less"), str(" "), str("than")), () => "LT")
+                )
+              )
+            )
+          ),
+          str(" ")
+        )
       ),
       alt(frames.get("The Value Of")!.pattern, frames.get("Literal")!.pattern)
     ),
-    ([value1, value2]: [PreLexXBar, PreLexXBar]) =>
-      (lex: Lexicon) => {
+    ([[value1, comparison], value2]: [
+      [PreLexXBar, string | undefined],
+      PreLexXBar
+    ]) => {
+      let logicFunction: (a: unknown, b: unknown) => boolean;
+      switch (comparison) {
+        case "LT":
+          logicFunction = (a: unknown, b: unknown) => {
+            if (typeof a == "number" && typeof b == "number") return a < b;
+            if (typeof a == "string" && typeof b == "string")
+              return a.length < b.length;
+            throw new Error(
+              `Cannot tell whether a ${typeof a} is less than a ${typeof b}`
+            );
+          };
+          break;
+        case "GT":
+          logicFunction = (a: unknown, b: unknown) => {
+            if (typeof a == "number" && typeof b == "number") return a > b;
+            if (typeof a == "string" && typeof b == "string")
+              return a.length > b.length;
+            throw new Error(
+              `Cannot tell whether a ${typeof a} is greater than a ${typeof b}`
+            );
+          };
+          break;
+        default:
+          logicFunction = (a: unknown, b: unknown) => {
+            if (typeof a == "number" && typeof b == "number") return a == b;
+            if (typeof a == "string" && typeof b == "string") return a == b;
+            if (typeof a == "boolean" && typeof b == "boolean") return a == b;
+            throw new Error(
+              `Cannot tell whether a ${typeof a} is equal to a ${typeof b}`
+            );
+          };
+          break;
+      }
+      return (lex: Lexicon) => {
         const XBar1 = value1(lex);
         const XBar2 = value2(lex);
         const boolXBar = new XBar(
           () => ({
             get: () =>
-              (XBar1.value as (lex: Lexicon) => { get: () => unknown })(
-                lex
-              ).get() ==
-              (XBar2.value as (lex: Lexicon) => { get: () => unknown })(
-                lex
-              ).get(),
+              logicFunction(
+                (XBar1.value as (lex: Lexicon) => { get: () => unknown })(
+                  lex
+                ).get(),
+                (XBar2.value as (lex: Lexicon) => { get: () => unknown })(
+                  lex
+                ).get()
+              ),
           }),
           new CompoundSemanticType(LexRoot.Lexicon, LexRoot.Boolean),
           `${XBar1.symbol} == ${XBar2.symbol}`
         );
         boolXBar.children = [XBar1, XBar2];
         return boolXBar;
-      }
+      };
+    }
   )
 );
 
