@@ -11,6 +11,11 @@ Fu, Y., Liang, P., Tahir, A., Li, Z., Shahin, M., Yu, J., and Chen, J. (2023).
   empirical study.
 \newblock {\em ACM Transactions on Software Engineering and Methodology}.
 
+\bibitem[Goldman, 1987]{Goldman_1987}
+Goldman, W. (1987).
+\newblock {\em The Princess Bride}.
+\newblock Twentieth Century Fox Film Corp.
+
 \bibitem[Hutton and Meijer, 1996]{Hutton1996MonadicPC}
 Hutton, G. and Meijer, E. (1996).
 \newblock Monadic parser combinators.

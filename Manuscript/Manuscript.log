@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.23)  30 APR 2025 09:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.3) (preloaded format=pdflatex 2025.4.23)  2 MAY 2025 13:01
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -377,6 +377,11 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 {C:/Users/drito/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
 
 [1]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 55.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 55.
+
 
 [1] (C:\Users\drito\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2024/09/23 1.10c listings language file
@@ -391,11 +396,6 @@ LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 77
  (C:\Users\drito\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 81.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 81.
-
 
 [2{C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc}]
 
@@ -410,7 +410,7 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 [7]
 
 [8]
-Overfull \hbox (3.5185pt too wide) in paragraph at lines 176--191
+Overfull \hbox (3.5185pt too wide) in paragraph at lines 178--193
 []  [] 
  []
 
@@ -420,26 +420,28 @@ Overfull \hbox (3.5185pt too wide) in paragraph at lines 176--191
 
 [10]
 
-[11] (Manuscript.bbl)
+[11]
 
-[12] (Manuscript.aux)
+[12] (Manuscript.bbl)
+
+[13] (Manuscript.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-03-26>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 14638 strings out of 469959
- 290548 string characters out of 5469834
- 877696 words of memory out of 5000000
- 41189 multiletter control sequences out of 15000+600000
- 632791 words of font info for 60 fonts, out of 8000000 for 9000
+ 14644 strings out of 469959
+ 290653 string characters out of 5469834
+ 877771 words of memory out of 5000000
+ 41194 multiletter control sequences out of 15000+600000
+ 633143 words of font info for 61 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,8n,91p,1492b,1539s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\drito\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucrb8a.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucrr8a.pfb>
-Output written on Manuscript.pdf (14 pages, 152148 bytes).
+ 84i,8n,91p,1495b,1539s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\drito\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti8.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucrb8a.pfb><C:/Users/drito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/courier/ucrr8a.pfb>
+Output written on Manuscript.pdf (15 pages, 198009 bytes).
 PDF statistics:
- 98 PDF objects out of 1000 (max. 8388607)
+ 122 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 
