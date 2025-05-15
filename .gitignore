@@ -1,3 +1,7 @@
 **/node_modules
 **/build
 **/__pycache__
+Manuscript
+!Manuscript/Manuscript.pdf
+!Manuscript/Manuscript.tex
+!Manuscript/Sources.bib
