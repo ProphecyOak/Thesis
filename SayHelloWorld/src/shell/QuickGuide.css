@@ -1,0 +1,11 @@
+#lexGuide {
+  margin: auto;
+  white-space: pre-line;
+  width: 300px;
+}
+
+.lexItemHeader {
+  font-size: large;
+  font-weight: bold;
+  display: inline;
+}
