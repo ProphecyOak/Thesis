@@ -14,6 +14,17 @@
 \usepackage{tikz} % For diagrams
 \usepackage{wrapfig} % For wrapping around figures
 
+% LINK STYLING
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
 % CODE BLOCK DEFINITIONS
 \usepackage{listings}
 \usepackage{courier}
@@ -47,7 +58,7 @@
 
 % ABSTRACT
 \begin{abstract}
-	\langName{} is a programming language that looks like natural language. Leveraging React with Vue and Microsoft's ts-parsec library, the goal of this project was to show that a programming language can be made to look like English. Not only that, but on a fundamental level, the interpreter for \langName{} relies on semantic composition in order to derive the meaning of its sentences. While this type of language is largely inefficient, there are benefits in accessibility and interesting tie-ins with the field of semantics.
+	\langName{}\footnote{Link to Repository: \url{https://github.com/ProphecyOak/Vizzini/tree/v1.0.0}} is a programming language that looks like natural language. Leveraging React with Vue and Microsoft's ts-parsec library, the goal of this project was to show that a programming language can be made to look like English. Not only that, but on a fundamental level, the interpreter for \langName{} relies on semantic composition in order to derive the meaning of its sentences. While this type of language is largely inefficient, there are benefits in accessibility and interesting tie-ins with the field of semantics.
 \end{abstract}
 
 % ACKNOWLEDGEMENTS
