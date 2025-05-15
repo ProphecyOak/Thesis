@@ -7,6 +7,8 @@ A programming language that looks like English.
 : Hello World!
 ```
 
+This project was initially completed between Sep 2024 and May 2025 for my Honors Thesis. The pdf in the `Manuscript` folder is the paper associated with this work. I encourage any curious individuals to experiment with this project and take it in new directions.
+
 ## Instructions
 
 Download and unzip the repository. Then in the `SayHelloWorld` folder, run the following commands:
