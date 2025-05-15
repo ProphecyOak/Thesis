@@ -50,6 +50,15 @@
 	\langName{} is a programming language that looks like natural language. Leveraging React with Vue and Microsoft's ts-parsec library, the goal of this project was to show that a programming language can be made to look like English. Not only that, but on a fundamental level, the interpreter for \langName{} relies on semantic composition in order to derive the meaning of its sentences. While this type of language is largely inefficient, there are benefits in accessibility and interesting tie-ins with the field of semantics.
 \end{abstract}
 
+% ACKNOWLEDGEMENTS
+\section*{Acknowledgements}
+\begin{itemize}
+	\item Thank you to my advisors: Dr. Rajesh Bhatt and Dr. Brian Dillon for always giving me helpful advice, steering me in the right direction, and helping to keep the scope of the project in check.
+	\item Thank you to my roommates and coworkers for putting up with me going on and on about this project. Specifically Adam, Theo, Joey, and Bryan. Yall were great walls to bounce ideas off of.
+	\item Thanks to everybody else who supported this project by attending the defense or in other ways.
+\end{itemize}
+
+\newpage{}
 % MAIN BODY
 \section*{Background}
 The simplest way to describe my project is a programming language which appears naturalistic. The original programming languages were punch-card based and tied in to the machinery they worked on. Since then, new languages have evolved from low level machine code into higher level abstracted systems. The evolution from Fortran to C to Python (to name a few) showcases how languages have moved in a direction allowing for programmers to more abstractly tell the computer what to do. \langName{}\footnote{Named for the character in \textit{The Princess Bride} because of the language's verbosity and because sometimes things "[do not mean] what you think [they mean]"\cite{Goldman_1987}} is the natural next step in that evolution.
@@ -208,17 +217,27 @@ At any given point, you have access to the current lexicon. Some functions like 
 	\item Adding. The main operation that has been implemented in \langName{} is addition. You can add a number to a variable. Because negative numbers are valid, this means that subtraction is also implemented implicitly.
 \end{itemize}
 
+\newpage{}
 \section*{Discussion}
 \langName{} is a complicated network of different systems that leverage computer science and linguistic principles and it fulfills my three core goals. First, with the inclusion of while loops, if statements, and variables, \langName{} is Turing complete. Meaning it satisfies the computational expressivity requirement. The deeply involved parser structure allows for the natural language freedom and helps facilitate the XBar system which in turn maintains linguistic fidelity. So, all the goals are accomplished. What makes this project useful?
 
 There are many reasons why \langName{} is an important experiment in this field. First, it is the only project I've found so far that uses any notion of semantic composition. Second, This project sits in a sort of gap left between regular programming languages and languages more similar to Pegasus. By leveraging linguistic systems like semantic composition, \langName{} is able to look like Pegasus but work like Python. That combination is largely novel (at least with this implementation).
 
+\subsection*{Future Work}
+\langName{} is by no means the limit when it comes to this avenue of exploration. There are a few key directions that the language could be taken that would greatly increase its usefulness.
+
+Firstly, there are so many verbs and argument frames that could be added to this language. What's more, it would not be entirely difficult. Each verb only requires you to create its fundamental XBar (i.e. a value and a type). The level of specificity could also become more granular in future iterations. My parser tends to chunk certain words together (e.g. ``each \textlangle\textit{iterator}\textrangle\ in,'' ``the value of \textlangle\textit{variable}\textrangle''), but taken to extremes, you could imagine a lexicon where ``each,'' ``in,'' ``the,'' and ``of'' all have individual meanings. The other thing to note related to this is the fact that my parser for the most part only does branching in a certain direction. The verb is attached to the thing to its right, and then the next thing to the right is attached to that and so on. This means that complex argument structures don't really work. If you were to change how the parser worked to take into account other rules (e.g. phrase structure rules) or use a parsing algorithm accounting for composability with backtracking, you could get a lot closer to English with the programming language.
+
+Those are some structural changes, but \langName{} could also expand by having support added for different varieties of English. African American Language (AAL) for example has structures very similar to General American English (GAE) but there are a number of differences that change how sentences look. Currently, \langName{}'s lexicon and grammar are fairly limited and tailored to my specific variety of English, but it would again not be difficult to just add more content the language can accept and parse. This leads easily into the next idea which would be language variety profiles. One possible next step for \langName{} would be adding profiles that users could create or download and then plug in to the parser. These profiles would allow you to specify certain grammatical quirks or nuances present in your specific English, so an AAL speaker's profile could have certain features and a GAE speaker could have certain other features that both reflect the same underlying meaning but look different on the surface. This would also not have to be as deep as AAL vs GAE. Even within the same language variety or dialect, speakers sometimes have tendencies to use certain grammatical frames more. Allowing users to tweak the settings via these profiles would allow the language to flow that much easier when writing code in \langName{}.
+
+Another interesting implication of this project is the possibility of teaching applications. Having worked with young children learning to program, there are many things that a long-time programmer might take for granted. Variables being labels to store information under is not intuitive to somebody who has never seen something like that before. This is true for other structures in programming as well. If there were a language that let you talk to it in a way that explained what you were doing, that would likely help to reinforce how these different pieces work. When creating \langName{}, I had as a guiding principle ``Does the sentence do what it says it does''? This was a useful construct but is somewhat of a flawed approach. I am a programmer and computer scientist, and have been exposed to the likes of variables and for loops for over 10 years now. My in-brain understanding of for loops means that a sentence like ``For each character in `bob': Say character's value''. makes sense. To a programming novice, that sentence might not have remotely the same meaning. To resolve this, human subject studies could be run that took un-exposed individuals and tried to elicit the natural way they talk about these structures. Asking an ten-year old about doing something multiple times (i.e. a for loop) for example and seeing how they describe it. By recording these descriptions, one could presumably make a more natural grammar for \langName{} than what my computer-science immersed brain could come up with.
+
+\subsection*{Limitations}
 While this project is a large step in terms of natural-looking programming languages, it still falls victim to many of the usual challenges associated with programming languages and especially natural-looking ones. The farther away we get from the machine, the less efficient we can be when telling it what to do. Not only does this languages have inefficiencies due to many levels of abstraction, but it also suffers from inefficiencies directly related to the semantic model being employed. Composing each sentence and feeding it in a lexicon to generate the value is a slow process on the scale of computing. There are likely things that could be done to save time here and there, but the goal of this project was not peak efficiency. Even the changes that could be made would still leave performance lacking compared to regular programming languages.
 
-It is also critical to note that this language has lots of room to expand. So many verbs and argument frames could be added to this language. What's more, it would not be entirely difficult. Each verb only requires you to creat its fundamental XBar (i.e. a value and a type). The level of specificity could also get more granular in future iterations. My parser tends to chunk certain words together (e.g. ``each \textlangle\textit{iterator}\textrangle\ in,'' ``the value of \textlangle\textit{variable}\textrangle''), but taken to extremes, you could imagine a lexicon where ``each,'' ``in,'' ``the,'' and ``of'' all have individual meanings. The other thing to note related to this is the fact that my parser for the most part only does branching in a certain direction. The verb is attached to the thing to its right, and then the next thing to the right is attached to that and so on. This means that complex argument structures don't really work. If you were to change how the parser worked to take into account other rules (e.g. phrase structure rules) or use a parsing algorithm accounting for composability with backtracking, you could get a lot closer to English with the programming language.
+Additionally, \langName{} needs a lot of work to reach the kind of scale that would make is usable. Hand-designing every English word to do what you want it to do would be a tremendous undertaking. There are some things that the program would be able to learn over time, but not enough for it to pick up the language itself. Firstly, \langName{} could be tweaked to figure out what kind of type a word is. Simply by looking at neighboring constructions, you could figure out what types it needs to be able to compose with. Syntax and movement could make this more complicated, but by and large, this is possible. The language however would not be able to determine the meaning of a word however. It might be able to figure out what type ``For'' is but would not be able to figure out that ``For'' introduces a looping construction. The reasons for this include a couple of factors. First, the computer cannot see context. At least in its present state, \langName{} cannot understand anaphora, other comparitive adjectives, or any of those context-dependent structures. This is the first thing that makes it impossible for the computer to intuit word meanings. The next is that the language cannot test its knowledge. A machine that is designed only to listen and act cannot try different structures out and see if they are correct. This feedback mechanism is part of how people develop their own language. They try something that fits their current understanding and see how it lands with their audience. The programming language lacks any means of tapping into that kind of feedback. Lastly, the computer cannot observe the expected response from two others using the language. Due to these factors, the computer has no ways of learning meanings. That is okay though. \langName{} does not need to learn meanings to be a comprehensive tool with a large vocabulary. It is not meant to be a fake human understanding what you say, but a machine doing what you tell it to do.
 
-Another interesting implication of this project is the possibility of teaching applications. Having worked with young children learning to program, there are many things that a long-time programmer might take for granted. Variables being labels to store information under is not intuitive to somebody who has never seen something like that before. This is true for other structures in programming as well. If there were a language that let you talk to it in a way that explained what you were doing, that would likely help to reinforce how these different pieces work.
-
+\section*{Conclusion}
 I do not think that \langName{} is the language of the future, but there are definitely a lot of features and ideas built into it that can be expanded upon and used in other systems. A language for learning that explains what it is doing without comments. A language for researchers that has lower barriers to entry. There are many possibilities, and they do not rely on incredibly complicated models of the brain or neural networks. That is the promise of \langName{}.
 
 
@@ -226,4 +245,52 @@ I do not think that \langName{} is the language of the future, but there are def
 \bibliographystyle{apalike}
 \bibliography{Sources}
 
+\newpage{}
+\section*{Appendix: Code Examples}
+
+\begin{codeblock}[title={Hello World}]
+> Say `Hello World!'.
+: Hello World!
+\end{codeblock}
+
+\begin{codeblock}[title={Saving Variables}]
+> Save 2 as Sandro's value.
+> Say Sandro's value.
+: 2
+\end{codeblock}
+
+\begin{codeblock}[title={Alternative Variable Access}]
+> Save `string' as the value of Sandro.
+: Say the value of Sandro.
+: string
+\end{codeblock}
+
+\begin{codeblock}[title={In-line Loops}]
+> Say 2 3 times.
+: 2
+: 2
+: 2
+\end{codeblock}
+
+\begin{codeblock}[title={In-line If Statements}]
+> Say `Hello World!' if 2 is 2.
+: Hello World!
+\end{codeblock}
+
+\begin{codeblock}[title={For Loops}]
+> For each character in `item': Say character's value.
+: i
+: t
+: e
+: m
+\end{codeblock}
+
+\begin{codeblock}[title={While Loops}]
+> Save 0 as counter's value.
+> While the value of counter is less than 3:
+    Add 1 to counter's value and say counter's value.
+: 1
+: 2
+: 3
+\end{codeblock}
 \end{document}

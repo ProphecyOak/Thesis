@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex Manuscript"] 1746205290.85191 "Manuscript.aux" "Manuscript.bbl" "Manuscript" 1746223142.52764 0
+["bibtex Manuscript"] 1747329594.2411 "Manuscript.aux" "Manuscript.bbl" "Manuscript" 1747329663.008 0
   "./Sources.bib" 1746204456 1771 85167ddf72d279237d9e7ebb006816a3 ""
   "C:/Users/drito/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/apalike.bst" 1291972791 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "Manuscript.aux" 1746223141 1359 6d630f823fb605e9fa2eb3e81b377597 "pdflatex"
+  "Manuscript.aux" 1747329662 1361 a88059d46af0e89d121ce8221acf238a "pdflatex"
   (generated)
   "Manuscript.bbl"
   "Manuscript.blg"
   (rewritten before read)
-["pdflatex"] 1746223140.29417 "d:/Thesis/Manuscript/Manuscript.tex" "Manuscript.pdf" "Manuscript" 1746223142.52847 0
+["pdflatex"] 1747329661.85195 "d:/Thesis/Manuscript/Manuscript.tex" "Manuscript.pdf" "Manuscript" 1747329663.00856 0
   "C:/Users/drito/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1745990745 82684 3a87f55ef758bc5fe6abfed9a40cca26 ""
   "C:/Users/drito/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrm1000.pk" 1727064480 11548 43c92dfacf2aa445393b4d4cc761bede ""
   "C:/Users/drito/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1745436046 13148213 001b7f909d85ef415ca5fd5ad5924a8e ""
@@ -137,10 +137,10 @@
   "C:/Users/drito/AppData/Local/Programs/MiKTeX/tex/latex/setspace/setspace.sty" 1670403145 22490 8cac309b79a4c53a4ffce4b1b07aead0 ""
   "C:/Users/drito/AppData/Local/Programs/MiKTeX/tex/latex/wrapfig/wrapfig.sty" 1044403200 26220 3701aebf80ccdef248c0c20dd062fea9 ""
   "C:/Users/drito/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
-  "Manuscript.aux" 1746223141 1359 6d630f823fb605e9fa2eb3e81b377597 "pdflatex"
-  "Manuscript.bbl" 1746205291 1393 2d57f089734ee621f5fd401e99a87088 "bibtex Manuscript"
-  "Manuscript.tex" 1746223139 32890 0ab9287ff7bbef5ea8eebcb954b498b8 ""
-  "d:/Thesis/Manuscript/Manuscript.tex" 1746223139 32890 0ab9287ff7bbef5ea8eebcb954b498b8 ""
+  "Manuscript.aux" 1747329662 1361 a88059d46af0e89d121ce8221acf238a "pdflatex"
+  "Manuscript.bbl" 1747329594 1393 2d57f089734ee621f5fd401e99a87088 "bibtex Manuscript"
+  "Manuscript.tex" 1747329661 38966 80dc4f1e3d232ff1a6a5770f3b296078 ""
+  "d:/Thesis/Manuscript/Manuscript.tex" 1747329661 38966 80dc4f1e3d232ff1a6a5770f3b296078 ""
   (generated)
   "Manuscript.aux"
   "Manuscript.log"

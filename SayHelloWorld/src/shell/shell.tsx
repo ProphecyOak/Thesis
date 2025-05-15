@@ -130,7 +130,11 @@ function Shell() {
                   style={{ whiteSpace: "pre-wrap" }}
                   key={`command-output-${index}-${outputIndex}`}
                   className={history.error ? "errorOutput" : ""}
-                >{`${output}\n`}</div>
+                >{`${
+                  history.error
+                    ? `I do not think that means what you think it means...\n${output}`
+                    : output
+                }\n`}</div>
               ))}
             </div>
           ))}
